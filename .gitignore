@@ -10,7 +10,7 @@
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
 
-# Package Files #
+# evita subir archivos compridos para no llenar el repositorio con archivos binarios
 *.jar
 *.war
 *.nar
@@ -23,6 +23,6 @@
 hs_err_pid*
 replay_pid*
 
-# Local env vars
+# prohibir subir el .env y el target/ al repositorio
 .env
 target/
