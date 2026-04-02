@@ -1,0 +1,14 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "SafeZone Backend (Cosmos)",
+      "request": "launch",
+      "mainClass": "com.utp.safezonebackend.ProyectoIntegradorBackendApplication",
+      "projectName": "safezone-backend",
+      "envFile": "${workspaceFolder}/.env",
+      "vmArgs": "-Dspring.profiles.active=cosmos"
+    }
+  ]
+}
