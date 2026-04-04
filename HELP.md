@@ -13,8 +13,9 @@ For further reference, please consider the following sections:
 * [Create an OCI image](https://docs.spring.io/spring-boot/3.5.13/maven-plugin/build-image.html)
 * [Spring Web](https://docs.spring.io/spring-boot/3.5.13/reference/web/servlet.html)
 * [Spring Security](https://docs.spring.io/spring-boot/3.5.13/reference/web/spring-security.html)
-* [Spring Cloud Azure](https://learn.microsoft.com/azure/developer/java/spring-framework/spring-cloud-azure-overview)
-* [Spring Data Support for Azure Cosmos DB](https://learn.microsoft.com/azure/developer/java/spring-framework/spring-data-support)
+* [Spring Data JPA](https://docs.spring.io/spring-boot/3.5.13/reference/data/sql.html)
+* [MySQL Connector/J](https://dev.mysql.com/doc/connector-j/en/)
+* [Flyway](https://docs.spring.io/spring-boot/3.5.13/how-to/data-initialization.html#howto.data-initialization.migration-tool.flyway)
 * [SpringDoc OpenAPI](https://springdoc.org/)
 * [Validation](https://docs.spring.io/spring-boot/3.5.13/reference/io/validation.html)
 
@@ -27,21 +28,20 @@ The following guides illustrate how to use some features concretely:
 * [Securing a Web Application](https://spring.io/guides/gs/securing-web/)
 * [Spring Boot and OAuth2](https://spring.io/guides/tutorials/spring-boot-oauth2/)
 * [Authenticating a User with LDAP](https://spring.io/guides/gs/authenticating-ldap/)
-* [How to use Spring Data Azure Cosmos DB](https://learn.microsoft.com/azure/developer/java/spring-framework/how-to-guides-spring-data-cosmosdb)
+* [Accessing Data with JPA](https://spring.io/guides/gs/accessing-data-jpa/)
 
 ## Run Modes
 
-- Default mode (without Cosmos profile):
+- Default mode:
   - `mvn spring-boot:run`
 
-- Cosmos mode (recommended for this project):
-  1. Create `.env` from `.env.example`.
-  2. Set:
-     - `AZURE_COSMOS_ENDPOINT`
-     - `AZURE_COSMOS_KEY`
-     - `AZURE_COSMOS_DATABASE`
-  3. Run:
-     - `./scripts/run-cosmos.sh`
+- MySQL mode (recommended for this project):
+  1. Set environment variables in your terminal:
+     - `DB_URL`
+     - `DB_USERNAME`
+     - `DB_PASSWORD`
+  2. Run:
+     - `mvn spring-boot:run`
 * [SpringDoc OpenAPI](https://github.com/springdoc/springdoc-openapi-demos/)
 * [Validation](https://spring.io/guides/gs/validating-form-input/)
 

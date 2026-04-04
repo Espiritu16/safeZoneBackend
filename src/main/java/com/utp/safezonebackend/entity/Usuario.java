@@ -1,28 +1,47 @@
 package com.utp.safezonebackend.entity;
 
-import com.azure.spring.data.cosmos.core.mapping.Container;
-import com.azure.spring.data.cosmos.core.mapping.PartitionKey;
 import com.utp.safezonebackend.entity.enums.RolUsuario;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
-import org.springframework.data.annotation.Id;
 
-@Container(containerName = "usuarios")
+@Entity
+@Table(name = "usuarios")
 public class Usuario {
 
     @Id
-    @PartitionKey
     private String id;
 
+    @Enumerated(EnumType.STRING)
     private RolUsuario rol;
+
     private String correo;
+
+    @Column(name = "contrasena_hash")
     private String contrasenaHash;
+
     private String nombres;
+
     private String apellidos;
+
     private String dni;
+
     private String telefono;
+
     private String distrito;
+
     private boolean activo;
+
+    private boolean eliminado;
+
+    @Column(name = "fecha_creacion")
     private OffsetDateTime fechaCreacion;
+
+    @Column(name = "fecha_actualizacion")
     private OffsetDateTime fechaActualizacion;
 
     public Usuario() {
@@ -106,6 +125,14 @@ public class Usuario {
 
     public void setActivo(boolean activo) {
         this.activo = activo;
+    }
+
+    public boolean isEliminado() {
+        return eliminado;
+    }
+
+    public void setEliminado(boolean eliminado) {
+        this.eliminado = eliminado;
     }
 
     public OffsetDateTime getFechaCreacion() {

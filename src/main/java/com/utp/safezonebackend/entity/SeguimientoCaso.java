@@ -1,27 +1,49 @@
 package com.utp.safezonebackend.entity;
 
-import com.azure.spring.data.cosmos.core.mapping.Container;
-import com.azure.spring.data.cosmos.core.mapping.PartitionKey;
 import com.utp.safezonebackend.entity.enums.RolUsuario;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
-import org.springframework.data.annotation.Id;
 
-@Container(containerName = "seguimientos_caso")
+@Entity
+@Table(name = "seguimientos_caso")
 public class SeguimientoCaso {
 
     @Id
     private String id;
 
-    @PartitionKey
+    @Column(name = "caso_id")
     private String casoId;
 
+    @Column(name = "autor_id")
     private String autorId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "rol_autor")
     private RolUsuario rolAutor;
+
+    @Column(name = "tipo_seguimiento")
     private String tipoSeguimiento;
+
     private String contenido;
+
+    @Column(name = "proxima_accion")
     private String proximaAccion;
+
+    @Column(name = "fecha_proxima_accion")
     private OffsetDateTime fechaProximaAccion;
+
+    private boolean eliminado;
+
+    @Column(name = "fecha_creacion")
     private OffsetDateTime fechaCreacion;
+
+    @Column(name = "fecha_actualizacion")
+    private OffsetDateTime fechaActualizacion;
 
     public SeguimientoCaso() {
     }
@@ -96,5 +118,21 @@ public class SeguimientoCaso {
 
     public void setFechaCreacion(OffsetDateTime fechaCreacion) {
         this.fechaCreacion = fechaCreacion;
+    }
+
+    public boolean isEliminado() {
+        return eliminado;
+    }
+
+    public void setEliminado(boolean eliminado) {
+        this.eliminado = eliminado;
+    }
+
+    public OffsetDateTime getFechaActualizacion() {
+        return fechaActualizacion;
+    }
+
+    public void setFechaActualizacion(OffsetDateTime fechaActualizacion) {
+        this.fechaActualizacion = fechaActualizacion;
     }
 }

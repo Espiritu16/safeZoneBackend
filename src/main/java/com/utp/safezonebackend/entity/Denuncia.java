@@ -1,31 +1,60 @@
 package com.utp.safezonebackend.entity;
 
-import com.azure.spring.data.cosmos.core.mapping.Container;
-import com.azure.spring.data.cosmos.core.mapping.PartitionKey;
 import com.utp.safezonebackend.entity.enums.NivelRiesgo;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
 import java.util.List;
-import org.springframework.data.annotation.Id;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
-@Container(containerName = "denuncias")
+@Entity
+@Table(name = "denuncias")
 public class Denuncia {
 
     @Id
     private String id;
 
-    @PartitionKey
+    @Column(name = "caso_id")
     private String casoId;
 
+    @Column(name = "victima_id")
     private String victimaId;
+
     private String descripcion;
+
+    @Column(name = "tipo_violencia")
     private String tipoViolencia;
+
+    @Column(name = "fecha_incidente")
     private OffsetDateTime fechaIncidente;
+
     private String distrito;
+
+    @Column(name = "direccion_referencia")
     private String direccionReferencia;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "nivel_riesgo")
     private NivelRiesgo nivelRiesgo;
+
+    @Column(name = "es_anonima")
     private boolean anonima;
+
+    @JdbcTypeCode(SqlTypes.JSON)
     private List<String> adjuntos;
+
+    private boolean eliminado;
+
+    @Column(name = "fecha_creacion")
     private OffsetDateTime fechaCreacion;
+
+    @Column(name = "fecha_actualizacion")
+    private OffsetDateTime fechaActualizacion;
 
     public Denuncia() {
     }
@@ -118,11 +147,27 @@ public class Denuncia {
         this.adjuntos = adjuntos;
     }
 
+    public boolean isEliminado() {
+        return eliminado;
+    }
+
+    public void setEliminado(boolean eliminado) {
+        this.eliminado = eliminado;
+    }
+
     public OffsetDateTime getFechaCreacion() {
         return fechaCreacion;
     }
 
     public void setFechaCreacion(OffsetDateTime fechaCreacion) {
         this.fechaCreacion = fechaCreacion;
+    }
+
+    public OffsetDateTime getFechaActualizacion() {
+        return fechaActualizacion;
+    }
+
+    public void setFechaActualizacion(OffsetDateTime fechaActualizacion) {
+        this.fechaActualizacion = fechaActualizacion;
     }
 }

@@ -1,34 +1,64 @@
 package com.utp.safezonebackend.entity;
 
-import com.azure.spring.data.cosmos.core.mapping.Container;
-import com.azure.spring.data.cosmos.core.mapping.PartitionKey;
 import com.utp.safezonebackend.entity.enums.ResultadoAuditoria;
 import com.utp.safezonebackend.entity.enums.RolUsuario;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
 import java.util.Map;
-import org.springframework.data.annotation.Id;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
-@Container(containerName = "auditoria")
+@Entity
+@Table(name = "auditoria")
 public class Auditoria {
 
     @Id
     private String id;
 
-    @PartitionKey
+    @Column(name = "entidad_tipo")
     private String entidadTipo;
 
+    @Column(name = "fecha_evento")
     private OffsetDateTime fecha;
+
+    @Column(name = "actor_id")
     private String actorId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "rol_actor")
     private RolUsuario actorRol;
+
     private String accion;
+
+    @Column(name = "entidad_id")
     private String entidadId;
+
+    @Enumerated(EnumType.STRING)
     private ResultadoAuditoria resultado;
+
     private String detalle;
+
+    @JdbcTypeCode(SqlTypes.JSON)
     private Map<String, Object> antes;
+
+    @JdbcTypeCode(SqlTypes.JSON)
     private Map<String, Object> despues;
+
     private String ip;
+
+    @Column(name = "agente_usuario")
     private String userAgent;
+
+    @Column(name = "codigo_solicitud")
     private String requestId;
+
+    @Column(name = "fecha_creacion")
+    private OffsetDateTime fechaCreacion;
 
     public Auditoria() {
     }
@@ -143,5 +173,13 @@ public class Auditoria {
 
     public void setRequestId(String requestId) {
         this.requestId = requestId;
+    }
+
+    public OffsetDateTime getFechaCreacion() {
+        return fechaCreacion;
+    }
+
+    public void setFechaCreacion(OffsetDateTime fechaCreacion) {
+        this.fechaCreacion = fechaCreacion;
     }
 }

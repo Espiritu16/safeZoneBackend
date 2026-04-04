@@ -1,26 +1,46 @@
 package com.utp.safezonebackend.entity;
 
-import com.azure.spring.data.cosmos.core.mapping.Container;
-import com.azure.spring.data.cosmos.core.mapping.PartitionKey;
 import com.utp.safezonebackend.entity.enums.RolUsuario;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
-import org.springframework.data.annotation.Id;
 
-@Container(containerName = "asignaciones_caso")
+@Entity
+@Table(name = "asignaciones_caso")
 public class AsignacionCaso {
 
     @Id
     private String id;
 
-    @PartitionKey
+    @Column(name = "caso_id")
     private String casoId;
 
+    @Column(name = "profesional_id")
     private String profesionalId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "rol_profesional")
     private RolUsuario rolProfesional;
+
     private boolean activo;
+
+    private boolean eliminado;
+
+    @Column(name = "fecha_asignacion")
     private OffsetDateTime fechaAsignacion;
+
+    @Column(name = "fecha_fin")
     private OffsetDateTime fechaFin;
+
+    @Column(name = "asignado_por")
     private String asignadoPor;
+
+    @Column(name = "fecha_actualizacion")
+    private OffsetDateTime fechaActualizacion;
 
     public AsignacionCaso() {
     }
@@ -65,6 +85,14 @@ public class AsignacionCaso {
         this.activo = activo;
     }
 
+    public boolean isEliminado() {
+        return eliminado;
+    }
+
+    public void setEliminado(boolean eliminado) {
+        this.eliminado = eliminado;
+    }
+
     public OffsetDateTime getFechaAsignacion() {
         return fechaAsignacion;
     }
@@ -87,5 +115,13 @@ public class AsignacionCaso {
 
     public void setAsignadoPor(String asignadoPor) {
         this.asignadoPor = asignadoPor;
+    }
+
+    public OffsetDateTime getFechaActualizacion() {
+        return fechaActualizacion;
+    }
+
+    public void setFechaActualizacion(OffsetDateTime fechaActualizacion) {
+        this.fechaActualizacion = fechaActualizacion;
     }
 }
