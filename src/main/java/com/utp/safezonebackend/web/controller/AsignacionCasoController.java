@@ -30,7 +30,7 @@ public class AsignacionCasoController {
         this.service = service;
     }
 
-    @Operation(summary = "Listar registros")
+    @Operation(summary = "Listar asignaciones de caso")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Operacion exitosa"),
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
@@ -40,7 +40,7 @@ public class AsignacionCasoController {
         return ResponseEntity.ok(service.findAll());
     }
 
-    @Operation(summary = "Obtener registro por ID")
+    @Operation(summary = "Obtener asignacion de caso por ID")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Operacion exitosa"),
         @ApiResponse(responseCode = "404", description = "Recurso no encontrado"),
@@ -51,7 +51,7 @@ public class AsignacionCasoController {
         return ResponseEntity.ok(service.findById(id));
     }
 
-    @Operation(summary = "Crear registro")
+    @Operation(summary = "Crear asignacion de caso")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Operacion exitosa"),
         @ApiResponse(responseCode = "400", description = "Solicitud invalida"),
@@ -62,7 +62,7 @@ public class AsignacionCasoController {
         return ResponseEntity.ok(service.create(request));
     }
 
-    @Operation(summary = "Actualizar registro")
+    @Operation(summary = "Actualizar asignacion de caso")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Operacion exitosa"),
         @ApiResponse(responseCode = "400", description = "Solicitud invalida"),
@@ -74,7 +74,7 @@ public class AsignacionCasoController {
         return ResponseEntity.ok(service.update(id, request));
     }
 
-    @Operation(summary = "Eliminar registro")
+    @Operation(summary = "Eliminar asignacion de caso")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "204", description = "Sin contenido"),
         @ApiResponse(responseCode = "404", description = "Recurso no encontrado"),

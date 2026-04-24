@@ -19,7 +19,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-@Tag(name = "RefreshToken", description = "Endpoints de autenticacion y gestion de sesion")
+@Tag(name = "RefreshToken", description = "Gestion de tokens de refresco")
 @RestController
 @RequestMapping("/api/auth")
 public class RefreshTokenController {
@@ -30,7 +30,7 @@ public class RefreshTokenController {
         this.service = service;
     }
 
-    @Operation(summary = "Listar registros")
+    @Operation(summary = "Listar tokens de refresco")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Operacion exitosa"),
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
@@ -40,7 +40,7 @@ public class RefreshTokenController {
         return ResponseEntity.ok(service.findAll());
     }
 
-    @Operation(summary = "Obtener registro por ID")
+    @Operation(summary = "Obtener token de refresco por ID")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Operacion exitosa"),
         @ApiResponse(responseCode = "404", description = "Recurso no encontrado"),
@@ -51,7 +51,7 @@ public class RefreshTokenController {
         return ResponseEntity.ok(service.findById(id));
     }
 
-    @Operation(summary = "Crear registro")
+    @Operation(summary = "Crear token de refresco")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Operacion exitosa"),
         @ApiResponse(responseCode = "400", description = "Solicitud invalida"),
@@ -62,7 +62,7 @@ public class RefreshTokenController {
         return ResponseEntity.ok(service.create(request));
     }
 
-    @Operation(summary = "Actualizar registro")
+    @Operation(summary = "Actualizar token de refresco")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Operacion exitosa"),
         @ApiResponse(responseCode = "400", description = "Solicitud invalida"),
@@ -74,7 +74,7 @@ public class RefreshTokenController {
         return ResponseEntity.ok(service.update(id, request));
     }
 
-    @Operation(summary = "Eliminar registro")
+    @Operation(summary = "Eliminar token de refresco")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "204", description = "Sin contenido"),
         @ApiResponse(responseCode = "404", description = "Recurso no encontrado"),
