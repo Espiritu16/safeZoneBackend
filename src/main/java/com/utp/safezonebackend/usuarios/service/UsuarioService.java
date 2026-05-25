@@ -92,6 +92,8 @@ public class UsuarioService {
         Usuario usuario = obtenerUsuario(id);
         Usuario actor = obtenerActorActual();
         Map<String, Object> antes = resumenUsuario(usuario);
+        RolUsuario rolAnterior = usuario.getRol();
+        boolean activoAnterior = usuario.isActivo();
 
         if (request.correo() != null && repository.existsByCorreoIgnoreCaseAndIdNot(request.correo(), id)) {
             throw new ExcepcionNegocio("El correo ya se encuentra registrado");
@@ -128,7 +130,7 @@ public class UsuarioService {
         usuario.setFechaActualizacion(OffsetDateTime.now());
 
         Usuario guardado = repository.save(usuario);
-        auditarCambio("MODIFICACION_USUARIO", id, actor, antes, resumenUsuario(guardado));
+        auditarCambio(resolverAccionAuditoria(request, rolAnterior, activoAnterior, guardado), id, actor, antes, resumenUsuario(guardado));
         return mapper.toResponse(guardado);
     }
 
@@ -195,6 +197,16 @@ public class UsuarioService {
                 "rol", usuario.getRol().name(),
                 "activo", usuario.isActivo()
         );
+    }
+
+    private String resolverAccionAuditoria(UpdateUsuarioRequest request, RolUsuario rolAnterior, boolean activoAnterior, Usuario usuario) {
+        if (request.rol() != null && rolAnterior != usuario.getRol()) {
+            return "CAMBIO_ROL_USUARIO";
+        }
+        if (request.activo() != null && activoAnterior != usuario.isActivo()) {
+            return usuario.isActivo() ? "ACTIVACION_USUARIO" : "INACTIVACION_USUARIO";
+        }
+        return "MODIFICACION_USUARIO";
     }
 
     private String normalizar(String valor) {
