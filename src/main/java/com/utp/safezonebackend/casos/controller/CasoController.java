@@ -6,7 +6,7 @@ import com.utp.safezonebackend.casos.dto.response.CasoResponse;
 import com.utp.safezonebackend.casos.service.CasoService;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -46,7 +46,7 @@ public class CasoController {
         @ApiResponse(responseCode = "404", description = "Recurso no encontrado"),
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
-    @GetMapping("/{id}")
+    @GetMapping("/{id}/inactivar")
     public ResponseEntity<CasoResponse> findById(@PathVariable String id) {
         return ResponseEntity.ok(service.findById(id));
     }
@@ -69,7 +69,7 @@ public class CasoController {
         @ApiResponse(responseCode = "404", description = "Recurso no encontrado"),
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
-    @PutMapping("/{id}")
+    @PutMapping("/{id}/inactivar")
     public ResponseEntity<CasoResponse> update(@PathVariable String id, @RequestBody UpdateCasoRequest request) {
         return ResponseEntity.ok(service.update(id, request));
     }
@@ -80,9 +80,9 @@ public class CasoController {
         @ApiResponse(responseCode = "404", description = "Recurso no encontrado"),
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable String id) {
-        service.delete(id);
+    @PatchMapping("/{id}/inactivar")
+    public ResponseEntity<Void> inactivar(@PathVariable String id) {
+        service.inactivar(id);
         return ResponseEntity.noContent().build();
     }
 }

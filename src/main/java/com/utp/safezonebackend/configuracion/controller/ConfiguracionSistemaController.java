@@ -6,7 +6,7 @@ import com.utp.safezonebackend.configuracion.dto.response.ConfiguracionSistemaRe
 import com.utp.safezonebackend.configuracion.service.ConfiguracionSistemaService;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -46,7 +46,7 @@ public class ConfiguracionSistemaController {
         @ApiResponse(responseCode = "404", description = "Recurso no encontrado"),
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
-    @GetMapping("/{id}")
+    @GetMapping("/{id}/inactivar")
     public ResponseEntity<ConfiguracionSistemaResponse> findById(@PathVariable Long id) {
         return ResponseEntity.ok(service.findById(id));
     }
@@ -69,7 +69,7 @@ public class ConfiguracionSistemaController {
         @ApiResponse(responseCode = "404", description = "Recurso no encontrado"),
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
-    @PutMapping("/{id}")
+    @PutMapping("/{id}/inactivar")
     public ResponseEntity<ConfiguracionSistemaResponse> update(@PathVariable Long id, @RequestBody UpdateConfiguracionSistemaRequest request) {
         return ResponseEntity.ok(service.update(id, request));
     }
@@ -80,9 +80,9 @@ public class ConfiguracionSistemaController {
         @ApiResponse(responseCode = "404", description = "Recurso no encontrado"),
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        service.delete(id);
+    @PatchMapping("/{id}/inactivar")
+    public ResponseEntity<Void> inactivar(@PathVariable Long id) {
+        service.inactivar(id);
         return ResponseEntity.noContent().build();
     }
 }

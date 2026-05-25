@@ -49,8 +49,8 @@ public class AuditoriaService {
     }
 
     @Transactional
-    public void delete(String id) {
-        throw new UnsupportedOperationException("Eliminacion manual de auditoria no permitida");
+    public void inactivar(String id) {
+        throw new UnsupportedOperationException("No se permite eliminacion fisica. Use inactivacion por estado/activo.");
     }
 
     @Transactional
