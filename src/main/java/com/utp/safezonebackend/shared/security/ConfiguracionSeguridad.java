@@ -42,6 +42,7 @@ public class ConfiguracionSeguridad {
                                 "/v3/api-docs/**"
                         ).permitAll()
                         .requestMatchers(
+                                "/api/auth/refresh-tokens/**",
                                 "/api/usuarios/**",
                                 "/api/configuracion/**",
                                 "/api/auditoria/**",
