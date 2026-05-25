@@ -1,5 +1,6 @@
 package com.utp.safezonebackend.shared.security;
 
+import com.utp.safezonebackend.configuracion.service.ConfiguracionSeguridadService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -16,11 +17,11 @@ import org.springframework.stereotype.Service;
 public class ServicioJwt {
 
     private final SecretKey llaveFirma;
-    private final long expiracionMinutos;
+    private final ConfiguracionSeguridadService configuracionSeguridadService;
 
     public ServicioJwt(
             @Value("${app.jwt.secreto}") String secretoBase64,
-            @Value("${app.jwt.expiracion-minutos:30}") long expiracionMinutos
+            ConfiguracionSeguridadService configuracionSeguridadService
     ) {
         byte[] bytes;
         try {
@@ -29,12 +30,12 @@ public class ServicioJwt {
             bytes = secretoBase64.getBytes(StandardCharsets.UTF_8);
         }
         this.llaveFirma = Keys.hmacShaKeyFor(bytes);
-        this.expiracionMinutos = expiracionMinutos;
+        this.configuracionSeguridadService = configuracionSeguridadService;
     }
 
     public String generarTokenAcceso(String usuarioId, String correo, String rol) {
         Instant ahora = Instant.now();
-        Instant expira = ahora.plusSeconds(expiracionMinutos * 60);
+        Instant expira = ahora.plusSeconds(configuracionSeguridadService.obtenerJwtExpiracionMinutos() * 60);
 
         return Jwts.builder()
                 .subject(usuarioId)
