@@ -8,6 +8,15 @@ import org.springframework.stereotype.Component;
 public class RefreshTokenMapper {
 
     public RefreshTokenResponse toResponse(RefreshToken entity) {
-        return new RefreshTokenResponse();
+        return new RefreshTokenResponse(
+                entity.getId(),
+                entity.getUsuarioId(),
+                entity.getExpiraEn(),
+                entity.isRevocado(),
+                entity.getRevocadoPor(),
+                entity.getFechaRevocacion(),
+                entity.getFechaCreacion(),
+                entity.isActivo()
+        );
     }
 }

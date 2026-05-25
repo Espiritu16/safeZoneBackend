@@ -1,5 +1,6 @@
 package com.utp.safezonebackend.shared.security;
 
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -22,13 +23,26 @@ public class ConfiguracionSeguridad {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(excepciones -> excepciones
+                        .authenticationEntryPoint((request, response, authException) ->
+                                escribirErrorSeguridad(response, HttpServletResponse.SC_UNAUTHORIZED, "No autenticado o token invalido"))
+                        .accessDeniedHandler((request, response, accessDeniedException) ->
+                                escribirErrorSeguridad(response, HttpServletResponse.SC_FORBIDDEN, "No tiene permisos para acceder a este recurso"))
+                )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/api/auth/**",
+                                "/api/auth/registrar",
+                                "/api/auth/iniciar-sesion",
+                                "/api/auth/renovar-token",
+                                "/api/auth/cerrar-sesion",
+                                "/api/auth/recuperar-contrasena",
+                                "/api/auth/verificar-codigo",
+                                "/api/auth/restablecer-contrasena",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**"
                         ).permitAll()
                         .requestMatchers(
+                                "/api/auth/refresh-tokens/**",
                                 "/api/usuarios/**",
                                 "/api/configuracion/**",
                                 "/api/auditoria/**",
@@ -38,5 +52,11 @@ public class ConfiguracionSeguridad {
                 );
         http.addFilterBefore(filtroAutenticacionJwt, UsernamePasswordAuthenticationFilter.class);
         return http.build();
+    }
+
+    private void escribirErrorSeguridad(HttpServletResponse response, int status, String mensaje) throws java.io.IOException {
+        response.setStatus(status);
+        response.setContentType("application/json;charset=UTF-8");
+        response.getWriter().write("{\"success\":false,\"message\":\"" + mensaje + "\"}");
     }
 }

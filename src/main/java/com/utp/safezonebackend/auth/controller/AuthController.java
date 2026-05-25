@@ -7,10 +7,12 @@ import com.utp.safezonebackend.auth.dto.request.SolicitudRegistro;
 import com.utp.safezonebackend.auth.dto.request.SolicitudRenovarToken;
 import com.utp.safezonebackend.auth.dto.request.SolicitudRestablecerContrasena;
 import com.utp.safezonebackend.auth.dto.request.SolicitudVerificarCodigo;
+import com.utp.safezonebackend.auth.dto.response.RespuestaContextoSesion;
 import com.utp.safezonebackend.auth.dto.response.RespuestaBasica;
 import com.utp.safezonebackend.auth.dto.response.RespuestaLogin;
 import com.utp.safezonebackend.auth.dto.response.RespuestaRenovarToken;
 import com.utp.safezonebackend.auth.service.AuthService;
+import com.utp.safezonebackend.auth.service.ContextoSesionService;
 import com.utp.safezonebackend.auth.service.RecuperacionContrasenaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -19,6 +21,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,10 +34,16 @@ public class AuthController {
 
     private final AuthService authService;
     private final RecuperacionContrasenaService recuperacionContrasenaService;
+    private final ContextoSesionService contextoSesionService;
 
-    public AuthController(AuthService authService, RecuperacionContrasenaService recuperacionContrasenaService) {
+    public AuthController(
+            AuthService authService,
+            RecuperacionContrasenaService recuperacionContrasenaService,
+            ContextoSesionService contextoSesionService
+    ) {
         this.authService = authService;
         this.recuperacionContrasenaService = recuperacionContrasenaService;
+        this.contextoSesionService = contextoSesionService;
     }
 
     @Operation(summary = "Registrar cuenta de usuario")
@@ -117,5 +126,16 @@ public class AuthController {
             @Valid @RequestBody SolicitudRestablecerContrasena solicitud
     ) {
         return ResponseEntity.ok(recuperacionContrasenaService.restablecerContrasena(solicitud));
+    }
+
+    @Operation(summary = "Obtener contexto del usuario autenticado")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Contexto obtenido"),
+            @ApiResponse(responseCode = "401", description = "Usuario no autenticado"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    @GetMapping("/me")
+    public ResponseEntity<RespuestaContextoSesion> obtenerContextoActual() {
+        return ResponseEntity.ok(contextoSesionService.obtenerContextoActual());
     }
 }

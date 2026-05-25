@@ -21,7 +21,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 @Tag(name = "RefreshToken", description = "Gestion de tokens de refresco")
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api/auth/refresh-tokens")
 public class RefreshTokenController {
 
     private final RefreshTokenService service;
@@ -46,7 +46,7 @@ public class RefreshTokenController {
         @ApiResponse(responseCode = "404", description = "Recurso no encontrado"),
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
-    @GetMapping("/{id}/inactivar")
+    @GetMapping("/{id}")
     public ResponseEntity<RefreshTokenResponse> findById(@PathVariable String id) {
         return ResponseEntity.ok(service.findById(id));
     }
@@ -69,12 +69,12 @@ public class RefreshTokenController {
         @ApiResponse(responseCode = "404", description = "Recurso no encontrado"),
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
-    @PutMapping("/{id}/inactivar")
+    @PutMapping("/{id}")
     public ResponseEntity<RefreshTokenResponse> update(@PathVariable String id, @RequestBody UpdateRefreshTokenRequest request) {
         return ResponseEntity.ok(service.update(id, request));
     }
 
-    @Operation(summary = "Eliminar token de refresco")
+    @Operation(summary = "Inactivar token de refresco")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "204", description = "Sin contenido"),
         @ApiResponse(responseCode = "404", description = "Recurso no encontrado"),

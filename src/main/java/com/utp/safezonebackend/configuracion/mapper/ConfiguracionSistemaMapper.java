@@ -8,6 +8,19 @@ import org.springframework.stereotype.Component;
 public class ConfiguracionSistemaMapper {
 
     public ConfiguracionSistemaResponse toResponse(ConfiguracionSistema entity) {
-        return new ConfiguracionSistemaResponse();
+        return new ConfiguracionSistemaResponse(
+                entity.getId(),
+                entity.getClave(),
+                entity.getValor(),
+                entity.getTipoValor(),
+                entity.getDescripcion(),
+                entity.isActivo(),
+                entity.getFechaCreacion(),
+                entity.getFechaActualizacion(),
+                entity.getFechaInactivacion(),
+                entity.getCreadoPor(),
+                entity.getActualizadoPor(),
+                entity.getInactivadoPor()
+        );
     }
 }
