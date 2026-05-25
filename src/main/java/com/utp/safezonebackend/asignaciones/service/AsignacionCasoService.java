@@ -35,7 +35,7 @@ public class AsignacionCasoService {
         throw new UnsupportedOperationException("Pendiente de implementar");
     }
 
-    public void delete(String id) {
-        throw new UnsupportedOperationException("Pendiente de implementar");
+    public void inactivar(String id) {
+        throw new UnsupportedOperationException("No se permite eliminacion fisica. Use inactivacion por estado/activo.");
     }
 }

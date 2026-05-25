@@ -35,7 +35,7 @@ public class ConfiguracionSistemaService {
         throw new UnsupportedOperationException("Pendiente de implementar");
     }
 
-    public void delete(Long id) {
-        throw new UnsupportedOperationException("Pendiente de implementar");
+    public void inactivar(Long id) {
+        throw new UnsupportedOperationException("No se permite eliminacion fisica. Use inactivacion por estado/activo.");
     }
 }
