@@ -99,5 +99,8 @@ Entidades principales registradas en `persistance/entity`:
 
 ## Documentacion tecnica complementaria
 
+- Carpeta `docs/`:
+  - `LOGICA_NEGOCIO.md`: definicion funcional del sistema, reglas por modulo, permisos por rol y flujo de atencion.
+  - `safezonedb_export_20260525_061915.sql`: export completo de la base de datos (`safezonedb`) para importacion en entornos locales.
 - Carpeta `informe/`: documentos de soporte funcional y tecnico del proyecto.
 - Carpeta `src/main/resources/bd/`: referencia de estructura de base de datos.
