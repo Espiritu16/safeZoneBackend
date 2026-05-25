@@ -9,6 +9,7 @@ import com.utp.safezonebackend.auth.dto.response.RespuestaLogin;
 import com.utp.safezonebackend.auth.dto.response.RespuestaRenovarToken;
 import com.utp.safezonebackend.auth.entity.RefreshToken;
 import com.utp.safezonebackend.auth.repository.RefreshTokenRepository;
+import com.utp.safezonebackend.configuracion.service.ConfiguracionSeguridadService;
 import com.utp.safezonebackend.shared.exception.ExcepcionNegocio;
 import com.utp.safezonebackend.shared.exception.RecursoNoEncontradoException;
 import com.utp.safezonebackend.shared.security.ServicioJwt;
@@ -22,7 +23,6 @@ import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,7 +37,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final ServicioJwt servicioJwt;
     private final HashTextoUtil hashTextoUtil;
-    private final long refreshExpiracionDias;
+    private final ConfiguracionSeguridadService configuracionSeguridadService;
 
     public AuthService(
             UsuarioRepository usuarioRepository,
@@ -45,14 +45,14 @@ public class AuthService {
             PasswordEncoder passwordEncoder,
             ServicioJwt servicioJwt,
             HashTextoUtil hashTextoUtil,
-            @Value("${app.auth.refresh-expiracion-dias:7}") long refreshExpiracionDias
+            ConfiguracionSeguridadService configuracionSeguridadService
     ) {
         this.usuarioRepository = usuarioRepository;
         this.refreshTokenRepository = refreshTokenRepository;
         this.passwordEncoder = passwordEncoder;
         this.servicioJwt = servicioJwt;
         this.hashTextoUtil = hashTextoUtil;
-        this.refreshExpiracionDias = refreshExpiracionDias;
+        this.configuracionSeguridadService = configuracionSeguridadService;
     }
 
     @Transactional
@@ -60,6 +60,7 @@ public class AuthService {
         if (usuarioRepository.existePorCorreo(solicitud.correo())) {
             throw new ExcepcionNegocio("El correo ya se encuentra registrado");
         }
+        configuracionSeguridadService.validarContrasenaSegura(solicitud.password());
 
         Usuario usuario = new Usuario();
         usuario.setId(UUID.randomUUID().toString());
@@ -172,7 +173,7 @@ public class AuthService {
         token.setId(UUID.randomUUID().toString());
         token.setUsuarioId(usuarioId);
         token.setTokenHash(hashTextoUtil.hashearSha256(refreshTokenPlano));
-        token.setExpiraEn(OffsetDateTime.now().plusDays(refreshExpiracionDias));
+        token.setExpiraEn(OffsetDateTime.now().plusDays(configuracionSeguridadService.obtenerRefreshExpiracionDias()));
         token.setRevocado(false);
         token.setActivo(true);
         token.setFechaCreacion(OffsetDateTime.now());

@@ -3,6 +3,7 @@ package com.utp.safezonebackend.usuarios.service;
 import com.utp.safezonebackend.auditoria.dto.request.RegistroAuditoriaInterna;
 import com.utp.safezonebackend.auditoria.enums.ResultadoAuditoria;
 import com.utp.safezonebackend.auditoria.service.AuditoriaService;
+import com.utp.safezonebackend.configuracion.service.ConfiguracionSeguridadService;
 import com.utp.safezonebackend.shared.exception.ExcepcionNegocio;
 import com.utp.safezonebackend.shared.exception.RecursoNoEncontradoException;
 import com.utp.safezonebackend.usuarios.dto.request.CreateUsuarioRequest;
@@ -29,17 +30,20 @@ public class UsuarioService {
     private final UsuarioMapper mapper;
     private final PasswordEncoder passwordEncoder;
     private final AuditoriaService auditoriaService;
+    private final ConfiguracionSeguridadService configuracionSeguridadService;
 
     public UsuarioService(
             UsuarioRepository repository,
             UsuarioMapper mapper,
             PasswordEncoder passwordEncoder,
-            AuditoriaService auditoriaService
+            AuditoriaService auditoriaService,
+            ConfiguracionSeguridadService configuracionSeguridadService
     ) {
         this.repository = repository;
         this.mapper = mapper;
         this.passwordEncoder = passwordEncoder;
         this.auditoriaService = auditoriaService;
+        this.configuracionSeguridadService = configuracionSeguridadService;
     }
 
     @Transactional(readOnly = true)
@@ -60,6 +64,7 @@ public class UsuarioService {
         if (repository.existsByDni(request.dni())) {
             throw new ExcepcionNegocio("El DNI ya se encuentra registrado");
         }
+        configuracionSeguridadService.validarContrasenaSegura(request.password());
 
         Usuario actor = obtenerActorActual();
         Usuario usuario = new Usuario();

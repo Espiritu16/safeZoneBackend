@@ -6,6 +6,7 @@ import com.utp.safezonebackend.auth.dto.request.SolicitudVerificarCodigo;
 import com.utp.safezonebackend.auth.dto.response.RespuestaBasica;
 import com.utp.safezonebackend.auth.entity.RecuperacionContrasenaCodigo;
 import com.utp.safezonebackend.auth.repository.RecuperacionContrasenaCodigoRepository;
+import com.utp.safezonebackend.configuracion.service.ConfiguracionSeguridadService;
 import com.utp.safezonebackend.shared.exception.ExcepcionNegocio;
 import com.utp.safezonebackend.shared.exception.RecursoNoEncontradoException;
 import com.utp.safezonebackend.shared.util.GeneradorCodigoRecuperacion;
@@ -23,14 +24,13 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class RecuperacionContrasenaService {
 
-    private static final int MINUTOS_EXPIRACION = 15;
-
     private final UsuarioRepository usuarioRepository;
     private final RecuperacionContrasenaCodigoRepository codigoRepository;
     private final GeneradorCodigoRecuperacion generadorCodigoRecuperacion;
     private final HashTextoUtil hashTextoUtil;
     private final CorreoService correoService;
     private final PasswordEncoder passwordEncoder;
+    private final ConfiguracionSeguridadService configuracionSeguridadService;
 
     public RecuperacionContrasenaService(
             UsuarioRepository usuarioRepository,
@@ -38,7 +38,8 @@ public class RecuperacionContrasenaService {
             GeneradorCodigoRecuperacion generadorCodigoRecuperacion,
             HashTextoUtil hashTextoUtil,
             CorreoService correoService,
-            PasswordEncoder passwordEncoder
+            PasswordEncoder passwordEncoder,
+            ConfiguracionSeguridadService configuracionSeguridadService
     ) {
         this.usuarioRepository = usuarioRepository;
         this.codigoRepository = codigoRepository;
@@ -46,6 +47,7 @@ public class RecuperacionContrasenaService {
         this.hashTextoUtil = hashTextoUtil;
         this.correoService = correoService;
         this.passwordEncoder = passwordEncoder;
+        this.configuracionSeguridadService = configuracionSeguridadService;
     }
 
     @Transactional
@@ -60,10 +62,10 @@ public class RecuperacionContrasenaService {
         codigo.setId(UUID.randomUUID().toString());
         codigo.setUsuarioId(usuario.getId());
         codigo.setCodigoHash(codigoHash);
-        codigo.setExpiraEn(LocalDateTime.now().plusMinutes(MINUTOS_EXPIRACION));
+        codigo.setExpiraEn(LocalDateTime.now().plusMinutes(configuracionSeguridadService.obtenerRecuperacionExpiracionMinutos()));
         codigo.setUsado(false);
         codigo.setIntentos(0);
-        codigo.setMaxIntentos(5);
+        codigo.setMaxIntentos(configuracionSeguridadService.obtenerRecuperacionMaxIntentos());
         codigo.setActivo(true);
         codigo.setFechaCreacion(LocalDateTime.now());
         codigoRepository.save(codigo);
@@ -105,6 +107,7 @@ public class RecuperacionContrasenaService {
             throw new ExcepcionNegocio("El codigo es invalido o ha expirado");
         }
 
+        configuracionSeguridadService.validarContrasenaSegura(solicitud.nuevaPassword());
         usuario.setContrasenaHash(passwordEncoder.encode(solicitud.nuevaPassword()));
         usuario.setFechaActualizacion(OffsetDateTime.now());
         usuarioRepository.save(usuario);

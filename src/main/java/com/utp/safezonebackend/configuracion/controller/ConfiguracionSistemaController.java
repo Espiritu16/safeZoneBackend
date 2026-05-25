@@ -4,6 +4,7 @@ import com.utp.safezonebackend.configuracion.dto.request.CreateConfiguracionSist
 import com.utp.safezonebackend.configuracion.dto.request.UpdateConfiguracionSistemaRequest;
 import com.utp.safezonebackend.configuracion.dto.response.ConfiguracionSistemaResponse;
 import com.utp.safezonebackend.configuracion.service.ConfiguracionSistemaService;
+import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -46,7 +47,7 @@ public class ConfiguracionSistemaController {
         @ApiResponse(responseCode = "404", description = "Recurso no encontrado"),
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
-    @GetMapping("/{id}/inactivar")
+    @GetMapping("/{id}")
     public ResponseEntity<ConfiguracionSistemaResponse> findById(@PathVariable Long id) {
         return ResponseEntity.ok(service.findById(id));
     }
@@ -58,7 +59,7 @@ public class ConfiguracionSistemaController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @PostMapping
-    public ResponseEntity<ConfiguracionSistemaResponse> create(@RequestBody CreateConfiguracionSistemaRequest request) {
+    public ResponseEntity<ConfiguracionSistemaResponse> create(@Valid @RequestBody CreateConfiguracionSistemaRequest request) {
         return ResponseEntity.ok(service.create(request));
     }
 
@@ -69,12 +70,12 @@ public class ConfiguracionSistemaController {
         @ApiResponse(responseCode = "404", description = "Recurso no encontrado"),
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
-    @PutMapping("/{id}/inactivar")
-    public ResponseEntity<ConfiguracionSistemaResponse> update(@PathVariable Long id, @RequestBody UpdateConfiguracionSistemaRequest request) {
+    @PutMapping("/{id}")
+    public ResponseEntity<ConfiguracionSistemaResponse> update(@PathVariable Long id, @Valid @RequestBody UpdateConfiguracionSistemaRequest request) {
         return ResponseEntity.ok(service.update(id, request));
     }
 
-    @Operation(summary = "Eliminar configuracion del sistema")
+    @Operation(summary = "Inactivar configuracion del sistema")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "204", description = "Sin contenido"),
         @ApiResponse(responseCode = "404", description = "Recurso no encontrado"),
