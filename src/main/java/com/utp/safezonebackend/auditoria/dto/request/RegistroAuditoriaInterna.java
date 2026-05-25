@@ -1,17 +1,16 @@
-package com.utp.safezonebackend.auditoria.dto.response;
+package com.utp.safezonebackend.auditoria.dto.request;
 
-import java.time.OffsetDateTime;
+import com.utp.safezonebackend.auditoria.enums.ResultadoAuditoria;
+import com.utp.safezonebackend.usuarios.enums.RolUsuario;
 import java.util.Map;
 
-public record AuditoriaResponse(
-        String id,
+public record RegistroAuditoriaInterna(
         String entidadTipo,
-        OffsetDateTime fechaEvento,
         String actorId,
-        String rolActor,
+        RolUsuario rolActor,
         String accion,
         String entidadId,
-        String resultado,
+        ResultadoAuditoria resultado,
         String detalle,
         Map<String, Object> antes,
         Map<String, Object> despues,
