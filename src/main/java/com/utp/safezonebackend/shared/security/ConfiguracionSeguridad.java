@@ -24,7 +24,13 @@ public class ConfiguracionSeguridad {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/api/auth/**",
+                                "/api/auth/registrar",
+                                "/api/auth/iniciar-sesion",
+                                "/api/auth/renovar-token",
+                                "/api/auth/cerrar-sesion",
+                                "/api/auth/recuperar-contrasena",
+                                "/api/auth/verificar-codigo",
+                                "/api/auth/restablecer-contrasena",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**"
                         ).permitAll()
