@@ -4,6 +4,7 @@ import com.utp.safezonebackend.usuarios.dto.request.CreateUsuarioRequest;
 import com.utp.safezonebackend.usuarios.dto.request.UpdateUsuarioRequest;
 import com.utp.safezonebackend.usuarios.dto.response.UsuarioResponse;
 import com.utp.safezonebackend.usuarios.service.UsuarioService;
+import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -46,7 +47,7 @@ public class UsuarioController {
         @ApiResponse(responseCode = "404", description = "Recurso no encontrado"),
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
-    @GetMapping("/{id}/inactivar")
+    @GetMapping("/{id}")
     public ResponseEntity<UsuarioResponse> findById(@PathVariable String id) {
         return ResponseEntity.ok(service.findById(id));
     }
@@ -58,7 +59,7 @@ public class UsuarioController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @PostMapping
-    public ResponseEntity<UsuarioResponse> create(@RequestBody CreateUsuarioRequest request) {
+    public ResponseEntity<UsuarioResponse> create(@Valid @RequestBody CreateUsuarioRequest request) {
         return ResponseEntity.ok(service.create(request));
     }
 
@@ -69,8 +70,8 @@ public class UsuarioController {
         @ApiResponse(responseCode = "404", description = "Recurso no encontrado"),
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
-    @PutMapping("/{id}/inactivar")
-    public ResponseEntity<UsuarioResponse> update(@PathVariable String id, @RequestBody UpdateUsuarioRequest request) {
+    @PutMapping("/{id}")
+    public ResponseEntity<UsuarioResponse> update(@PathVariable String id, @Valid @RequestBody UpdateUsuarioRequest request) {
         return ResponseEntity.ok(service.update(id, request));
     }
 

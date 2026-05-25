@@ -1,41 +1,201 @@
 package com.utp.safezonebackend.usuarios.service;
 
+import com.utp.safezonebackend.auditoria.dto.request.RegistroAuditoriaInterna;
+import com.utp.safezonebackend.auditoria.enums.ResultadoAuditoria;
+import com.utp.safezonebackend.auditoria.service.AuditoriaService;
+import com.utp.safezonebackend.shared.exception.ExcepcionNegocio;
+import com.utp.safezonebackend.shared.exception.RecursoNoEncontradoException;
 import com.utp.safezonebackend.usuarios.dto.request.CreateUsuarioRequest;
 import com.utp.safezonebackend.usuarios.dto.request.UpdateUsuarioRequest;
 import com.utp.safezonebackend.usuarios.dto.response.UsuarioResponse;
+import com.utp.safezonebackend.usuarios.entity.Usuario;
+import com.utp.safezonebackend.usuarios.enums.RolUsuario;
 import com.utp.safezonebackend.usuarios.mapper.UsuarioMapper;
 import com.utp.safezonebackend.usuarios.repository.UsuarioRepository;
+import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UsuarioService {
 
     private final UsuarioRepository repository;
     private final UsuarioMapper mapper;
+    private final PasswordEncoder passwordEncoder;
+    private final AuditoriaService auditoriaService;
 
-    public UsuarioService(UsuarioRepository repository, UsuarioMapper mapper) {
+    public UsuarioService(
+            UsuarioRepository repository,
+            UsuarioMapper mapper,
+            PasswordEncoder passwordEncoder,
+            AuditoriaService auditoriaService
+    ) {
         this.repository = repository;
         this.mapper = mapper;
+        this.passwordEncoder = passwordEncoder;
+        this.auditoriaService = auditoriaService;
     }
 
+    @Transactional(readOnly = true)
     public List<UsuarioResponse> findAll() {
-        throw new UnsupportedOperationException("Pendiente de implementar");
+        return repository.findAll().stream().map(mapper::toResponse).toList();
     }
 
+    @Transactional(readOnly = true)
     public UsuarioResponse findById(String id) {
-        throw new UnsupportedOperationException("Pendiente de implementar");
+        return mapper.toResponse(obtenerUsuario(id));
     }
 
+    @Transactional
     public UsuarioResponse create(CreateUsuarioRequest request) {
-        throw new UnsupportedOperationException("Pendiente de implementar");
+        if (repository.existsByCorreoIgnoreCase(request.correo())) {
+            throw new ExcepcionNegocio("El correo ya se encuentra registrado");
+        }
+        if (repository.existsByDni(request.dni())) {
+            throw new ExcepcionNegocio("El DNI ya se encuentra registrado");
+        }
+
+        Usuario actor = obtenerActorActual();
+        Usuario usuario = new Usuario();
+        usuario.setId(UUID.randomUUID().toString());
+        usuario.setCorreo(request.correo().trim().toLowerCase());
+        usuario.setContrasenaHash(passwordEncoder.encode(request.password()));
+        usuario.setNombres(request.nombres().trim());
+        usuario.setApellidos(request.apellidos().trim());
+        usuario.setDni(request.dni().trim());
+        usuario.setTelefono(normalizar(request.telefono()));
+        usuario.setDistrito(normalizar(request.distrito()));
+        usuario.setRol(request.rol());
+        usuario.setActivo(true);
+        usuario.setCreadoPor(actor == null ? null : actor.getId());
+        usuario.setFechaCreacion(OffsetDateTime.now());
+        usuario.setFechaActualizacion(OffsetDateTime.now());
+
+        Usuario guardado = repository.save(usuario);
+        auditarCambio("CREACION_USUARIO", guardado.getId(), actor, null, resumenUsuario(guardado));
+        return mapper.toResponse(guardado);
     }
 
+    @Transactional
     public UsuarioResponse update(String id, UpdateUsuarioRequest request) {
-        throw new UnsupportedOperationException("Pendiente de implementar");
+        Usuario usuario = obtenerUsuario(id);
+        Usuario actor = obtenerActorActual();
+        Map<String, Object> antes = resumenUsuario(usuario);
+
+        if (request.correo() != null && repository.existsByCorreoIgnoreCaseAndIdNot(request.correo(), id)) {
+            throw new ExcepcionNegocio("El correo ya se encuentra registrado");
+        }
+        if (request.dni() != null && repository.existsByDniAndIdNot(request.dni(), id)) {
+            throw new ExcepcionNegocio("El DNI ya se encuentra registrado");
+        }
+
+        if (request.correo() != null) {
+            usuario.setCorreo(request.correo().trim().toLowerCase());
+        }
+        if (request.nombres() != null) {
+            usuario.setNombres(request.nombres().trim());
+        }
+        if (request.apellidos() != null) {
+            usuario.setApellidos(request.apellidos().trim());
+        }
+        if (request.dni() != null) {
+            usuario.setDni(request.dni().trim());
+        }
+        if (request.telefono() != null) {
+            usuario.setTelefono(normalizar(request.telefono()));
+        }
+        if (request.distrito() != null) {
+            usuario.setDistrito(normalizar(request.distrito()));
+        }
+        if (request.rol() != null) {
+            usuario.setRol(request.rol());
+        }
+        if (request.activo() != null) {
+            aplicarCambioActivo(usuario, request.activo(), actor);
+        }
+        usuario.setActualizadoPor(actor == null ? null : actor.getId());
+        usuario.setFechaActualizacion(OffsetDateTime.now());
+
+        Usuario guardado = repository.save(usuario);
+        auditarCambio("MODIFICACION_USUARIO", id, actor, antes, resumenUsuario(guardado));
+        return mapper.toResponse(guardado);
     }
 
+    @Transactional
     public void inactivar(String id) {
-        throw new UnsupportedOperationException("No se permite eliminacion fisica. Use inactivacion por estado/activo.");
+        Usuario usuario = obtenerUsuario(id);
+        Usuario actor = obtenerActorActual();
+        Map<String, Object> antes = resumenUsuario(usuario);
+        aplicarCambioActivo(usuario, false, actor);
+        usuario.setActualizadoPor(actor == null ? null : actor.getId());
+        usuario.setFechaActualizacion(OffsetDateTime.now());
+        repository.save(usuario);
+        auditarCambio("INACTIVACION_USUARIO", id, actor, antes, resumenUsuario(usuario));
+    }
+
+    private void aplicarCambioActivo(Usuario usuario, boolean activo, Usuario actor) {
+        if (!activo && usuario.getRol() == RolUsuario.ADMIN && repository.countByRolAndActivoTrue(RolUsuario.ADMIN) <= 1) {
+            throw new ExcepcionNegocio("No se puede inactivar al unico administrador activo");
+        }
+        usuario.setActivo(activo);
+        if (activo) {
+            usuario.setInactivadoPor(null);
+            usuario.setFechaInactivacion(null);
+        } else {
+            usuario.setInactivadoPor(actor == null ? null : actor.getId());
+            usuario.setFechaInactivacion(OffsetDateTime.now());
+        }
+    }
+
+    private Usuario obtenerUsuario(String id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Usuario no encontrado"));
+    }
+
+    private Usuario obtenerActorActual() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || auth.getName() == null || "anonymousUser".equals(auth.getName())) {
+            return null;
+        }
+        return repository.buscarPorCorreo(auth.getName()).orElse(null);
+    }
+
+    private void auditarCambio(String accion, String entidadId, Usuario actor, Map<String, Object> antes, Map<String, Object> despues) {
+        auditoriaService.registrarAccion(new RegistroAuditoriaInterna(
+                "USUARIOS",
+                actor == null ? null : actor.getId(),
+                actor == null ? null : actor.getRol(),
+                accion,
+                entidadId,
+                ResultadoAuditoria.OK,
+                "Gestion de usuarios y roles",
+                antes,
+                despues,
+                null,
+                null,
+                UUID.randomUUID().toString()
+        ));
+    }
+
+    private Map<String, Object> resumenUsuario(Usuario usuario) {
+        return Map.of(
+                "id", usuario.getId(),
+                "correo", usuario.getCorreo(),
+                "rol", usuario.getRol().name(),
+                "activo", usuario.isActivo()
+        );
+    }
+
+    private String normalizar(String valor) {
+        if (valor == null || valor.isBlank()) {
+            return null;
+        }
+        return valor.trim();
     }
 }
