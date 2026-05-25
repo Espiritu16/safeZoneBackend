@@ -1,12 +1,15 @@
 package com.utp.safezonebackend.auth.controller;
 
 import com.utp.safezonebackend.auth.dto.request.SolicitudLogin;
+import com.utp.safezonebackend.auth.dto.request.SolicitudCerrarSesion;
 import com.utp.safezonebackend.auth.dto.request.SolicitudRecuperarContrasena;
 import com.utp.safezonebackend.auth.dto.request.SolicitudRegistro;
+import com.utp.safezonebackend.auth.dto.request.SolicitudRenovarToken;
 import com.utp.safezonebackend.auth.dto.request.SolicitudRestablecerContrasena;
 import com.utp.safezonebackend.auth.dto.request.SolicitudVerificarCodigo;
 import com.utp.safezonebackend.auth.dto.response.RespuestaBasica;
 import com.utp.safezonebackend.auth.dto.response.RespuestaLogin;
+import com.utp.safezonebackend.auth.dto.response.RespuestaRenovarToken;
 import com.utp.safezonebackend.auth.service.AuthService;
 import com.utp.safezonebackend.auth.service.RecuperacionContrasenaService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -55,6 +58,28 @@ public class AuthController {
     @PostMapping("/iniciar-sesion")
     public ResponseEntity<RespuestaLogin> iniciarSesion(@Valid @RequestBody SolicitudLogin solicitud) {
         return ResponseEntity.ok(authService.iniciarSesion(solicitud));
+    }
+
+    @Operation(summary = "Renovar token de acceso con refresh token")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Token renovado"),
+            @ApiResponse(responseCode = "400", description = "Refresh token invalido"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    @PostMapping("/renovar-token")
+    public ResponseEntity<RespuestaRenovarToken> renovarToken(@Valid @RequestBody SolicitudRenovarToken solicitud) {
+        return ResponseEntity.ok(authService.renovarToken(solicitud));
+    }
+
+    @Operation(summary = "Cerrar sesion revocando refresh token")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Sesion cerrada"),
+            @ApiResponse(responseCode = "400", description = "Refresh token invalido"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    @PostMapping("/cerrar-sesion")
+    public ResponseEntity<RespuestaBasica> cerrarSesion(@Valid @RequestBody SolicitudCerrarSesion solicitud) {
+        return ResponseEntity.ok(authService.cerrarSesion(solicitud));
     }
 
     @Operation(summary = "Solicitar codigo de recuperacion")
