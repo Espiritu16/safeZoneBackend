@@ -16,7 +16,7 @@ Fuente de apoyo:
 | Rol | Responsabilidad principal | Tipo de acceso |
 |---|---|---|
 | `VICTIMA` | Reportar hechos, consultar sus denuncias, casos, citas, evidencias y notificaciones permitidas. | Portal usuario con header/footer, sin sidebar. |
-| `RECEPCIONISTA` | Registrar victimas, registrar denuncia asistida, clasificar riesgo inicial y crear caso. | Panel operativo. |
+| `RECEPCIONISTA` | Atender predenuncias, contactar victima, registrar denuncia asistida, clasificar riesgo inicial y crear caso. | Panel operativo. |
 | `PSICOLOGO` | Atender casos asignados, registrar observaciones, acciones y proximas acciones. | Panel profesional. |
 | `DEFENSOR` | Atender casos asignados desde el enfoque legal, registrar acciones y seguimiento. | Panel profesional. |
 | `SOPORTE` | Apoyar operacion, revisar trazabilidad y monitorear incidencias operativas. | Panel operativo restringido. |
@@ -26,6 +26,7 @@ Fuente de apoyo:
 | Modulo | Requerimientos | Tablas base |
 |---|---|---|
 | Autenticacion y seguridad | RF-01, RF-02, RF-10, RF-18, RF-20 | `usuarios`, `refresh_tokens`, `configuracion_sistema`, `auditoria` |
+| Predenuncias y contacto inicial | RF-12, RF-16, RF-18 | `pre_denuncias`, `usuarios`, `victimas_alias` |
 | Gestion de victimas | RF-03, RF-11, RF-16 | `usuarios`, `victimas_alias` |
 | Casos y denuncias | RF-04, RF-06, RF-08, RF-12, RF-13, RF-15, RF-17 | `casos`, `denuncias`, `seguimientos_caso`, `notificaciones` |
 | Asignacion de profesionales | RF-14 | `asignaciones_caso`, `usuarios`, `casos` |
@@ -36,42 +37,50 @@ Fuente de apoyo:
 ## 4. Flujo principal del negocio
 ```mermaid
 flowchart TD
-  A["Victima reporta hecho"] --> B["Recepcionista registra victima"]
-  B --> C["Sistema genera alias anonimo"]
-  C --> D["Recepcionista registra denuncia asistida"]
-  D --> E["Sistema crea caso asociado"]
-  E --> F["Recepcionista clasifica riesgo y prioridad"]
-  F --> G{Riesgo critico?}
-  G -- Si --> H["Sistema genera notificacion critica"]
-  G -- No --> I["Caso queda pendiente de asignacion"]
-  H --> I
-  I --> J["Admin/Recepcionista asigna profesional"]
-  J --> K["Psicologo o defensor atiende"]
-  K --> L["Profesional registra seguimiento"]
-  L --> M["Se programa o confirma cita"]
-  M --> N{Caso resuelto?}
-  N -- No --> K
-  N -- Si --> O["Caso cerrado"]
-  O --> P["Auditoria conserva trazabilidad"]
+  A["Victima envia formulario de predenuncia"] --> B["Sistema registra predenuncia PENDIENTE"]
+  B --> C["Recepcionista revisa cola y contacta victima"]
+  C --> D{"Contacto valido?"}
+  D -- No --> E["Predenuncia DESCARTADA"]
+  D -- Si --> F["Recepcionista registra/actualiza victima"]
+  F --> G["Sistema genera alias anonimo"]
+  G --> H["Recepcionista formaliza denuncia asistida"]
+  H --> I["Sistema crea caso asociado"]
+  I --> J["Recepcionista clasifica riesgo y prioridad"]
+  J --> K{Riesgo critico?}
+  K -- Si --> L["Sistema genera notificacion critica"]
+  K -- No --> M["Caso queda pendiente de asignacion"]
+  L --> M
+  M --> N["Admin/Recepcionista asigna profesional"]
+  N --> O["Psicologo o defensor atiende"]
+  O --> P["Profesional registra seguimiento"]
+  P --> Q["Se programa o confirma cita"]
+  Q --> R{Caso resuelto?}
+  R -- No --> O
+  R -- Si --> S["Caso cerrado"]
+  S --> T["Auditoria conserva trazabilidad"]
 ```
 
-## 4.1 Proceso BPMN textual - Denuncia asistida
-Este proceso representa el flujo principal segun el enfoque del avance 1: la victima reporta el hecho y el personal autorizado registra formalmente el caso.
+## 4.1 Proceso BPMN textual - Predenuncia y formalizacion asistida
+Este proceso representa el flujo principal: la victima inicia una predenuncia y el personal autorizado formaliza la denuncia solo despues de validar contacto e informacion minima.
 
 | Carril | Actividad | Resultado |
 |---|---|---|
-| Victima | Comunica o inicia el reporte del hecho. | Solicitud de atencion iniciada. |
+| Victima | Completa formulario inicial de predenuncia. | Registro en `pre_denuncias` con estado `PENDIENTE`. |
+| Recepcionista | Revisa predenuncia y contacta a la victima. | Predenuncia en `EN_CONTACTO` o `DESCARTADA`. |
 | Recepcionista | Verifica si la victima ya existe. | Victima identificada o pendiente de registro. |
 | Recepcionista | Registra datos principales y contacto seguro. | Usuario con rol `VICTIMA`. |
 | Sistema | Genera alias anonimo unico. | Registro en `victimas_alias`. |
 | Recepcionista | Registra denuncia asistida. | Registro en `denuncias`. |
 | Sistema | Crea caso asociado a la victima y denuncia. | Registro en `casos`. |
+| Sistema | Marca predenuncia como formalizada. | `pre_denuncias.estado = FORMALIZADA`. |
 | Recepcionista | Aplica evaluacion inicial. | Nivel de riesgo y prioridad. |
 | Sistema | Evalua si el riesgo es critico. | Alerta automatica si corresponde. |
 | Sistema | Registra auditoria del proceso. | Evento en `auditoria`. |
 
 Reglas del proceso:
 - La denuncia formal no debe quedar sin victima asociada.
+- No se crea `denuncias` ni `casos` si la predenuncia no fue validada por recepcionista.
+- Toda predenuncia debe terminar en `FORMALIZADA` o `DESCARTADA`.
 - La victima debe tener alias activo para proteger su identidad operativa.
 - Si el caso es critico, el sistema debe generar notificacion inmediata.
 - El registro debe quedar trazado con actor, fecha y resultado.
@@ -79,32 +88,36 @@ Reglas del proceso:
 ```mermaid
 flowchart LR
   subgraph V["Victima"]
-    V1["Reporta hecho"]
+    V1["Envia predenuncia"]
   end
 
   subgraph R["Recepcionista"]
-    R1["Busca o registra victima"]
-    R2["Registra denuncia asistida"]
-    R3["Clasifica riesgo inicial"]
+    R1["Contacta y valida datos"]
+    R2["Busca o registra victima"]
+    R3["Registra denuncia asistida"]
+    R4["Clasifica riesgo inicial"]
   end
 
   subgraph S["Sistema"]
-    S1["Genera alias anonimo"]
-    S2["Crea caso"]
-    S3{"Riesgo critico?"}
-    S4["Genera notificacion"]
-    S5["Registra auditoria"]
+    S1["Registra predenuncia PENDIENTE"]
+    S2["Genera alias anonimo"]
+    S3["Crea caso"]
+    S4{"Riesgo critico?"}
+    S5["Genera notificacion"]
+    S6["Registra auditoria"]
   end
 
-  V1 --> R1
-  R1 --> S1
-  S1 --> R2
+  V1 --> S1
+  S1 --> R1
+  R1 --> R2
   R2 --> S2
   S2 --> R3
   R3 --> S3
-  S3 -- Si --> S4
-  S3 -- No --> S5
-  S4 --> S5
+  S3 --> R4
+  R4 --> S4
+  S4 -- Si --> S5
+  S4 -- No --> S6
+  S5 --> S6
 ```
 
 ## 4.2 Proceso BPMN textual - Asignacion y atencion del caso
@@ -287,6 +300,8 @@ Requerimientos relacionados:
 - RF-17: Busqueda y filtros.
 
 Reglas:
+- El formulario de victima inicia como predenuncia en `pre_denuncias`.
+- Solo recepcionista/admin formaliza una predenuncia a denuncia oficial.
 - La denuncia debe asociarse a una victima y a un caso.
 - Debe registrar descripcion, tipo de violencia, fecha del incidente, distrito, referencia y nivel de riesgo.
 - La denuncia puede marcarse como anonima.
@@ -295,8 +310,8 @@ Reglas:
 - La denuncia no debe eliminarse fisicamente; debe usarse inactivacion logica.
 
 Vista esperada:
-- Recepcionista: registra denuncia asistida.
-- Victima: puede iniciar reporte o consultar denuncias permitidas.
+- Recepcionista: revisa predenuncias y registra denuncia asistida.
+- Victima: puede iniciar predenuncia y consultar sus denuncias formalizadas.
 - Admin/soporte: puede consultar y auditar.
 
 ## 8. Asignacion de profesionales
@@ -441,6 +456,8 @@ Reglas:
 | Consultar panel por rol | Si | Si | Si | Si | Si | Si |
 | Registrar victima | No | Si | No | No | No | Si |
 | Generar alias | No | Si | No | No | No | Si |
+| Registrar predenuncia | Si | Si | No | No | No | Si |
+| Gestionar predenuncias | No | Si | No | No | Consulta | Si |
 | Registrar denuncia asistida | Parcial | Si | No | No | No | Si |
 | Consultar sus denuncias | Si | No | No | No | No | No |
 | Consultar todas las denuncias | No | Si | No | No | Si | Si |
@@ -479,6 +496,7 @@ Reglas:
 - Inicio de sesion exitoso o fallido.
 - Cierre de sesion.
 - Registro de victima.
+- Registro y actualizacion de predenuncia.
 - Generacion o cambio de alias.
 - Registro de denuncia.
 - Creacion de caso.
