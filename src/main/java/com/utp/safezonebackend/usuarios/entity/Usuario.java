@@ -36,8 +36,6 @@ public class Usuario {
 
     private boolean activo;
 
-    private boolean eliminado;
-
     @Column(name = "fecha_creacion")
     private OffsetDateTime fechaCreacion;
 
@@ -55,12 +53,6 @@ public class Usuario {
 
     @Column(name = "fecha_inactivacion")
     private OffsetDateTime fechaInactivacion;
-
-    @Column(name = "eliminado_por")
-    private String eliminadoPor;
-
-    @Column(name = "fecha_eliminacion")
-    private OffsetDateTime fechaEliminacion;
 
     public Usuario() {
     }
@@ -145,14 +137,6 @@ public class Usuario {
         this.activo = activo;
     }
 
-    public boolean isEliminado() {
-        return eliminado;
-    }
-
-    public void setEliminado(boolean eliminado) {
-        this.eliminado = eliminado;
-    }
-
     public OffsetDateTime getFechaCreacion() {
         return fechaCreacion;
     }
@@ -201,19 +185,4 @@ public class Usuario {
         this.fechaInactivacion = fechaInactivacion;
     }
 
-    public String getEliminadoPor() {
-        return eliminadoPor;
-    }
-
-    public void setEliminadoPor(String eliminadoPor) {
-        this.eliminadoPor = eliminadoPor;
-    }
-
-    public OffsetDateTime getFechaEliminacion() {
-        return fechaEliminacion;
-    }
-
-    public void setFechaEliminacion(OffsetDateTime fechaEliminacion) {
-        this.fechaEliminacion = fechaEliminacion;
-    }
 }
