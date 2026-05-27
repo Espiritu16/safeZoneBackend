@@ -1,8 +1,7 @@
 package com.utp.safezonebackend.victimas.service;
 
-import com.utp.safezonebackend.shared.exception.ExcepcionNegocio;
+
 import com.utp.safezonebackend.shared.exception.RecursoNoEncontradoException;
-import com.utp.safezonebackend.usuarios.entity.Usuario;
 import com.utp.safezonebackend.victimas.dto.request.CreateVictimaAliasRequest;
 import com.utp.safezonebackend.victimas.dto.request.InhabilitarVictimaAliasRequest;
 import com.utp.safezonebackend.victimas.dto.request.UpdateVictimaAliasRequest;
@@ -12,10 +11,8 @@ import com.utp.safezonebackend.victimas.mapper.VictimaAliasMapper;
 import com.utp.safezonebackend.victimas.repository.VictimaAliasRepository;
 
 import java.time.OffsetDateTime;
-import java.util.List;
 import java.util.UUID;
 
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -28,14 +25,8 @@ public class VictimaAliasService {
         this.repository = repository;
         this.mapper = mapper;
     }
-    public VictimaAliasResponse findById(String id, Authentication auth) {
+    public VictimaAliasResponse findById(String id) {
         VictimaAlias alias = obtenerAlias(id);
-        if (auth.getAuthorities().contains("ROLE_VICTIMA")) {
-            String usuarioId = auth.getName();
-            if (!alias.getVictimaId().equals(usuarioId)) {
-                throw new ExcepcionNegocio("No tienes permiso para ver este alias");
-            }
-        }
         VictimaAliasResponse response = new VictimaAliasResponse();
         response.setAliasCodigo(alias.getAliasCodigo());
         response.setCreadoPor(alias.getCreadoPor());
