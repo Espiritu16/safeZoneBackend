@@ -1,11 +1,21 @@
 package com.utp.safezonebackend.victimas.service;
 
+import com.utp.safezonebackend.shared.exception.ExcepcionNegocio;
+import com.utp.safezonebackend.shared.exception.RecursoNoEncontradoException;
+import com.utp.safezonebackend.usuarios.entity.Usuario;
 import com.utp.safezonebackend.victimas.dto.request.CreateVictimaAliasRequest;
+import com.utp.safezonebackend.victimas.dto.request.InhabilitarVictimaAliasRequest;
 import com.utp.safezonebackend.victimas.dto.request.UpdateVictimaAliasRequest;
 import com.utp.safezonebackend.victimas.dto.response.VictimaAliasResponse;
+import com.utp.safezonebackend.victimas.entity.VictimaAlias;
 import com.utp.safezonebackend.victimas.mapper.VictimaAliasMapper;
 import com.utp.safezonebackend.victimas.repository.VictimaAliasRepository;
+
+import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.UUID;
+
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -18,24 +28,62 @@ public class VictimaAliasService {
         this.repository = repository;
         this.mapper = mapper;
     }
-
-    public List<VictimaAliasResponse> findAll() {
-        throw new UnsupportedOperationException("Pendiente de implementar");
-    }
-
-    public VictimaAliasResponse findById(String id) {
-        throw new UnsupportedOperationException("Pendiente de implementar");
+    public VictimaAliasResponse findById(String id, Authentication auth) {
+        VictimaAlias alias = obtenerAlias(id);
+        if (auth.getAuthorities().contains("ROLE_VICTIMA")) {
+            String usuarioId = auth.getName();
+            if (!alias.getVictimaId().equals(usuarioId)) {
+                throw new ExcepcionNegocio("No tienes permiso para ver este alias");
+            }
+        }
+        VictimaAliasResponse response = new VictimaAliasResponse();
+        response.setAliasCodigo(alias.getAliasCodigo());
+        response.setCreadoPor(alias.getCreadoPor());
+        response.setFechaAsignacion(alias.getFechaAsignacion());
+        response.setFechaFin(alias.getFechaFin());
+        return response;
     }
 
     public VictimaAliasResponse create(CreateVictimaAliasRequest request) {
-        throw new UnsupportedOperationException("Pendiente de implementar");
+        String aliasGenerado = "VIC-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        VictimaAlias alias = new VictimaAlias();
+        alias.setAliasCodigo(aliasGenerado);
+        alias.setVictimaId(request.getVictimaId());
+        alias.setCreadoPor(request.getCreadoPor());
+        alias.setFechaAsignacion(OffsetDateTime.now());
+        alias.setFechaFin(request.getFechaFin());
+        alias.setActivo(true);
+        VictimaAlias guardado = repository.save(alias);
+        VictimaAliasResponse response = new VictimaAliasResponse();
+        response.setAliasCodigo(guardado.getAliasCodigo());
+        response.setCreadoPor(guardado.getCreadoPor());
+        response.setFechaAsignacion(guardado.getFechaAsignacion());
+        response.setFechaFin(guardado.getFechaFin());
+        return response;
     }
 
     public VictimaAliasResponse update(String id, UpdateVictimaAliasRequest request) {
-        throw new UnsupportedOperationException("Pendiente de implementar");
+        VictimaAlias alias = obtenerAlias(id);
+        alias.setActualizadoPor(request.getActualizadoPor());
+        alias.setFechaActualizacion(OffsetDateTime.now());
+        VictimaAlias guardado = repository.save(alias);
+        VictimaAliasResponse response = new VictimaAliasResponse();
+        response.setAliasCodigo(guardado.getAliasCodigo());
+        response.setCreadoPor(guardado.getCreadoPor());
+        response.setFechaAsignacion(guardado.getFechaAsignacion());
+        response.setFechaFin(guardado.getFechaFin());
+        return response;
     }
 
-    public void inactivar(String id) {
-        throw new UnsupportedOperationException("No se permite eliminacion fisica. Use inactivacion por estado/activo.");
+    public void inactivar(String id, InhabilitarVictimaAliasRequest request) {
+        VictimaAlias alias = obtenerAlias(id);
+        alias.setActivo(false);
+        alias.setInactivadoPor(request.getInactivadoPor());
+        alias.setFechaInactivacion(OffsetDateTime.now());
+        alias.setFechaFin(OffsetDateTime.now());
+        repository.save(alias);
+    }
+    private VictimaAlias obtenerAlias(String id) {
+        return repository.findById(id).orElseThrow(() -> new RecursoNoEncontradoException("Alias no encontrado"));
     }
 }

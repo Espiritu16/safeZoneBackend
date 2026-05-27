@@ -1,11 +1,14 @@
 package com.utp.safezonebackend.victimas.controller;
 
 import com.utp.safezonebackend.victimas.dto.request.CreateVictimaAliasRequest;
+import com.utp.safezonebackend.victimas.dto.request.InhabilitarVictimaAliasRequest;
 import com.utp.safezonebackend.victimas.dto.request.UpdateVictimaAliasRequest;
 import com.utp.safezonebackend.victimas.dto.response.VictimaAliasResponse;
 import com.utp.safezonebackend.victimas.service.VictimaAliasService;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -30,15 +33,6 @@ public class VictimaAliasController {
         this.service = service;
     }
 
-    @Operation(summary = "Listar alias de victimas")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Operacion exitosa"),
-        @ApiResponse(responseCode = "500", description = "Error interno del servidor")
-    })
-    @GetMapping
-    public ResponseEntity<List<VictimaAliasResponse>> findAll() {
-        return ResponseEntity.ok(service.findAll());
-    }
 
     @Operation(summary = "Obtener alias de victima por ID")
     @ApiResponses(value = {
@@ -46,9 +40,12 @@ public class VictimaAliasController {
         @ApiResponse(responseCode = "404", description = "Recurso no encontrado"),
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
-    @GetMapping("/{id}/inactivar")
-    public ResponseEntity<VictimaAliasResponse> findById(@PathVariable String id) {
-        return ResponseEntity.ok(service.findById(id));
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'RECEPCIONISTA', 'PSICOLOGO', 'DEFENSOR', 'VICTIMA')")
+    public ResponseEntity<VictimaAliasResponse> findById(
+            @PathVariable String id,
+            Authentication auth) {
+        return ResponseEntity.ok(service.findById(id, auth));
     }
 
     @Operation(summary = "Crear alias de victima")
@@ -69,7 +66,7 @@ public class VictimaAliasController {
         @ApiResponse(responseCode = "404", description = "Recurso no encontrado"),
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
-    @PutMapping("/{id}/inactivar")
+    @PutMapping("/{id}/actualizar")
     public ResponseEntity<VictimaAliasResponse> update(@PathVariable String id, @RequestBody UpdateVictimaAliasRequest request) {
         return ResponseEntity.ok(service.update(id, request));
     }
@@ -81,8 +78,8 @@ public class VictimaAliasController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @PatchMapping("/{id}/inactivar")
-    public ResponseEntity<Void> inactivar(@PathVariable String id) {
-        service.inactivar(id);
+    public ResponseEntity<Void> inactivar(@PathVariable String id, @RequestBody InhabilitarVictimaAliasRequest request) {
+        service.inactivar(id,request);
         return ResponseEntity.noContent().build();
     }
 }
