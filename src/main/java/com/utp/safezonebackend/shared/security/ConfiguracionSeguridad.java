@@ -48,6 +48,29 @@ public class ConfiguracionSeguridad {
                                 "/api/auditoria/**",
                                 "/api/reportes/**"
                         ).hasRole("ADMIN")
+                        .requestMatchers("/api/casos/**")
+                        .hasAnyRole("ADMIN", "RECEPCIONISTA", "PSICOLOGO", "DEFENSOR")
+                        // Citas — profesionales y recepcionista
+                        .requestMatchers("/api/citas/**")
+                        .hasAnyRole("ADMIN", "RECEPCIONISTA", "PSICOLOGO", "DEFENSOR")
+                        // Víctimas y alias — personal autorizado
+                        .requestMatchers("/api/victimas/**")
+                        .hasAnyRole("ADMIN", "RECEPCIONISTA", "PSICOLOGO", "DEFENSOR")
+                        // Denuncias
+                        .requestMatchers("/api/denuncias/**")
+                        .hasAnyRole("ADMIN", "RECEPCIONISTA", "DEFENSOR")
+                        // Evidencias
+                        .requestMatchers("/api/evidencias/**")
+                        .hasAnyRole("ADMIN", "PSICOLOGO", "DEFENSOR")
+                        // Seguimientos
+                        .requestMatchers("/api/seguimientos/**")
+                        .hasAnyRole("ADMIN", "PSICOLOGO", "DEFENSOR")
+                        // Notificaciones — todos los autenticados
+                        .requestMatchers("/api/notificaciones/**")
+                        .hasAnyRole("ADMIN", "RECEPCIONISTA", "PSICOLOGO", "DEFENSOR", "VICTIMA")
+                        // Asignaciones
+                        .requestMatchers("/api/asignaciones/**")
+                        .hasAnyRole("ADMIN", "RECEPCIONISTA")
                         .anyRequest().authenticated()
                 );
         http.addFilterBefore(filtroAutenticacionJwt, UsernamePasswordAuthenticationFilter.class);
