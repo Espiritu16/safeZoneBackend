@@ -5,6 +5,5 @@ public enum RolUsuario {
     RECEPCIONISTA,
     PSICOLOGO,
     DEFENSOR,
-    SOPORTE,
     ADMIN
 }

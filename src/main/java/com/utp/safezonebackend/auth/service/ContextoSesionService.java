@@ -54,7 +54,6 @@ public class ContextoSesionService {
             case RECEPCIONISTA -> List.of("predenuncias", "victimas", "denuncias", "casos", "citas");
             case PSICOLOGO, DEFENSOR -> List.of("casos_asignados", "seguimientos", "citas", "evidencias");
             case VICTIMA -> List.of("mis_denuncias", "mis_casos", "mis_citas", "notificaciones");
-            case SOPORTE -> List.of("auditoria_limitada", "notificaciones", "soporte_operativo");
         };
     }
 
@@ -70,7 +69,6 @@ public class ContextoSesionService {
             case PSICOLOGO -> List.of("casos_asignados:leer", "seguimientos:registrar", "citas:gestionar", "evidencias:leer");
             case DEFENSOR -> List.of("casos_asignados:leer", "seguimientos:registrar", "citas:gestionar", "evidencias:gestionar");
             case VICTIMA -> List.of("mis_denuncias:leer", "mis_casos:leer", "mis_citas:leer", "notificaciones:leer");
-            case SOPORTE -> List.of("auditoria_limitada:leer", "notificaciones:gestionar", "soporte_operativo:gestionar");
         };
     }
 }
