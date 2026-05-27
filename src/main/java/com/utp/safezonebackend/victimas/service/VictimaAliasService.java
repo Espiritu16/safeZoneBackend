@@ -2,6 +2,8 @@ package com.utp.safezonebackend.victimas.service;
 
 
 import com.utp.safezonebackend.shared.exception.RecursoNoEncontradoException;
+import com.utp.safezonebackend.usuarios.entity.Usuario;
+import com.utp.safezonebackend.usuarios.repository.UsuarioRepository;
 import com.utp.safezonebackend.victimas.dto.request.CreateVictimaAliasRequest;
 import com.utp.safezonebackend.victimas.dto.request.InhabilitarVictimaAliasRequest;
 import com.utp.safezonebackend.victimas.dto.request.UpdateVictimaAliasRequest;
@@ -20,10 +22,11 @@ public class VictimaAliasService {
 
     private final VictimaAliasRepository repository;
     private final VictimaAliasMapper mapper;
-
-    public VictimaAliasService(VictimaAliasRepository repository, VictimaAliasMapper mapper) {
+    private final UsuarioRepository usuarioRepository;
+    public VictimaAliasService(VictimaAliasRepository repository, VictimaAliasMapper mapper,UsuarioRepository usuarioRepository) {
         this.repository = repository;
         this.mapper = mapper;
+        this.usuarioRepository=usuarioRepository;
     }
     public VictimaAliasResponse findById(String id) {
         VictimaAlias alias = obtenerAlias(id);
@@ -36,10 +39,12 @@ public class VictimaAliasService {
     }
 
     public VictimaAliasResponse create(CreateVictimaAliasRequest request) {
+        Usuario victima = usuarioRepository.findById(request.getVictimaId())
+                .orElseThrow(() -> new RecursoNoEncontradoException("Víctima no encontrada"));
         String aliasGenerado = "VIC-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
         VictimaAlias alias = new VictimaAlias();
         alias.setAliasCodigo(aliasGenerado);
-        alias.setVictimaId(request.getVictimaId());
+        alias.setVictima(victima);
         alias.setCreadoPor(request.getCreadoPor());
         alias.setFechaAsignacion(OffsetDateTime.now());
         alias.setFechaFin(request.getFechaFin());

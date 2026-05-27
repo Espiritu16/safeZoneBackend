@@ -1,5 +1,6 @@
 package com.utp.safezonebackend.victimas.entity;
 
+import com.utp.safezonebackend.usuarios.entity.Usuario;
 import jakarta.persistence.*;
 
 import java.time.OffsetDateTime;
@@ -11,10 +12,9 @@ public class VictimaAlias {
     @Id
     private String id;
 
-    @Column(name = "victima_id")
-    @OneToOne
-    @JoinColumn(name="id_usuario")
-    private String victimaId;
+    @ManyToOne
+    @JoinColumn(name = "victima_id")
+    private Usuario victima;
 
     @Column(name = "alias_codigo")
     private String aliasCodigo;
@@ -47,11 +47,11 @@ public class VictimaAlias {
     public void setId(String id) {
         this.id = id;
     }
-    public String getVictimaId() {
-        return victimaId;
+    public Usuario getVictima() {
+        return victima;
     }
-    public void setVictimaId(String victimaId) {
-        this.victimaId = victimaId;
+    public void setVictima(Usuario victima) {
+        this.victima = victima;
     }
     public String getAliasCodigo() {
         return aliasCodigo;
