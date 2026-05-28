@@ -1,7 +1,7 @@
 package com.utp.safezonebackend.casos.controller;
 
-import com.utp.safezonebackend.casos.dto.request.CreateCasoRequest;
-import com.utp.safezonebackend.casos.dto.request.UpdateCasoRequest;
+import com.utp.safezonebackend.casos.dto.request.CrearCasoRequest;
+import com.utp.safezonebackend.casos.dto.request.ActualizarCasoRequest;
 import com.utp.safezonebackend.casos.dto.response.CasoResponse;
 import com.utp.safezonebackend.casos.service.CasoService;
 import java.util.List;
@@ -58,7 +58,7 @@ public class CasoController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @PostMapping
-    public ResponseEntity<CasoResponse> create(@RequestBody CreateCasoRequest request) {
+    public ResponseEntity crear(@RequestBody CrearCasoRequest request) {
         return ResponseEntity.ok(service.create(request));
     }
 
@@ -70,7 +70,7 @@ public class CasoController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @PutMapping("/{id}/inactivar")
-    public ResponseEntity<CasoResponse> update(@PathVariable String id, @RequestBody UpdateCasoRequest request) {
+    public ResponseEntity actualizar(@PathVariable String id, @RequestBody ActualizarCasoRequest request) {
         return ResponseEntity.ok(service.update(id, request));
     }
 

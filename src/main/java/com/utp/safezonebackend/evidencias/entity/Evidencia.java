@@ -7,7 +7,7 @@ import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
 
 @Entity
-@Table(name = "evidencias")
+@Table(name = "evidencia")
 public class Evidencia {
 
     @Id

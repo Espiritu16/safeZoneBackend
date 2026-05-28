@@ -3,8 +3,8 @@ package com.utp.safezonebackend.configuracion.service;
 import com.utp.safezonebackend.auditoria.dto.request.RegistroAuditoriaInterna;
 import com.utp.safezonebackend.auditoria.enums.ResultadoAuditoria;
 import com.utp.safezonebackend.auditoria.service.AuditoriaService;
-import com.utp.safezonebackend.configuracion.dto.request.CreateConfiguracionSistemaRequest;
-import com.utp.safezonebackend.configuracion.dto.request.UpdateConfiguracionSistemaRequest;
+import com.utp.safezonebackend.configuracion.dto.request.CrearConfiguracionSistemaRequest;
+import com.utp.safezonebackend.configuracion.dto.request.ActualizarConfiguracionSistemaRequest;
 import com.utp.safezonebackend.configuracion.dto.response.ConfiguracionSistemaResponse;
 import com.utp.safezonebackend.configuracion.entity.ConfiguracionSistema;
 import com.utp.safezonebackend.configuracion.enums.TipoValorConfiguracion;
@@ -55,7 +55,7 @@ public class ConfiguracionSistemaService {
     }
 
     @Transactional
-    public ConfiguracionSistemaResponse create(CreateConfiguracionSistemaRequest request) {
+    public ConfiguracionSistemaResponse create(CrearConfiguracionSistemaRequest request) {
         String clave = normalizarClave(request.clave());
         validarValor(request.tipoValor(), request.valor());
         if (repository.existsByClaveIgnoreCase(clave)) {
@@ -79,7 +79,7 @@ public class ConfiguracionSistemaService {
     }
 
     @Transactional
-    public ConfiguracionSistemaResponse update(Long id, UpdateConfiguracionSistemaRequest request) {
+    public ConfiguracionSistemaResponse update(Long id, ActualizarConfiguracionSistemaRequest request) {
         ConfiguracionSistema configuracion = obtenerConfiguracion(id);
         Usuario actor = obtenerActorActual();
         Map<String, Object> antes = resumenConfiguracion(configuracion);

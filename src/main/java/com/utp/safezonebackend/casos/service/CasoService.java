@@ -1,7 +1,7 @@
 package com.utp.safezonebackend.casos.service;
 
-import com.utp.safezonebackend.casos.dto.request.CreateCasoRequest;
-import com.utp.safezonebackend.casos.dto.request.UpdateCasoRequest;
+import com.utp.safezonebackend.casos.dto.request.CrearCasoRequest;
+import com.utp.safezonebackend.casos.dto.request.ActualizarCasoRequest;
 import com.utp.safezonebackend.casos.dto.response.CasoResponse;
 import com.utp.safezonebackend.casos.mapper.CasoMapper;
 import com.utp.safezonebackend.casos.repository.CasoRepository;
@@ -27,11 +27,11 @@ public class CasoService {
         throw new UnsupportedOperationException("Pendiente de implementar");
     }
 
-    public CasoResponse create(CreateCasoRequest request) {
+    public CasoResponse create(CrearCasoRequest request) {
         throw new UnsupportedOperationException("Pendiente de implementar");
     }
 
-    public CasoResponse update(String id, UpdateCasoRequest request) {
+    public CasoResponse update(String id, ActualizarCasoRequest request) {
         throw new UnsupportedOperationException("Pendiente de implementar");
     }
 

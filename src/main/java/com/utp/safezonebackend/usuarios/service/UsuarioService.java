@@ -6,8 +6,8 @@ import com.utp.safezonebackend.auditoria.service.AuditoriaService;
 import com.utp.safezonebackend.configuracion.service.ConfiguracionSeguridadService;
 import com.utp.safezonebackend.shared.exception.ExcepcionNegocio;
 import com.utp.safezonebackend.shared.exception.RecursoNoEncontradoException;
-import com.utp.safezonebackend.usuarios.dto.request.CreateUsuarioRequest;
-import com.utp.safezonebackend.usuarios.dto.request.UpdateUsuarioRequest;
+import com.utp.safezonebackend.usuarios.dto.request.CrearUsuarioRequest;
+import com.utp.safezonebackend.usuarios.dto.request.ActualizarUsuarioRequest;
 import com.utp.safezonebackend.usuarios.dto.response.UsuarioResponse;
 import com.utp.safezonebackend.usuarios.entity.Usuario;
 import com.utp.safezonebackend.usuarios.enums.RolUsuario;
@@ -57,20 +57,20 @@ public class UsuarioService {
     }
 
     @Transactional
-    public UsuarioResponse create(CreateUsuarioRequest request) {
+    public UsuarioResponse create(CrearUsuarioRequest request) {
         if (repository.existsByCorreoIgnoreCase(request.correo())) {
             throw new ExcepcionNegocio("El correo ya se encuentra registrado");
         }
         if (repository.existsByDni(request.dni())) {
             throw new ExcepcionNegocio("El DNI ya se encuentra registrado");
         }
-        configuracionSeguridadService.validarContrasenaSegura(request.password());
+        configuracionSeguridadService.validarContrasenaSegura(request.contrasena());
 
         Usuario actor = obtenerActorActual();
         Usuario usuario = new Usuario();
         usuario.setId(UUID.randomUUID().toString());
         usuario.setCorreo(request.correo().trim().toLowerCase());
-        usuario.setContrasenaHash(passwordEncoder.encode(request.password()));
+        usuario.setContrasenaHash(passwordEncoder.encode(request.contrasena()));
         usuario.setNombres(request.nombres().trim());
         usuario.setApellidos(request.apellidos().trim());
         usuario.setDni(request.dni().trim());
@@ -88,7 +88,7 @@ public class UsuarioService {
     }
 
     @Transactional
-    public UsuarioResponse update(String id, UpdateUsuarioRequest request) {
+    public UsuarioResponse update(String id, ActualizarUsuarioRequest request) {
         Usuario usuario = obtenerUsuario(id);
         Usuario actor = obtenerActorActual();
         Map<String, Object> antes = resumenUsuario(usuario);
@@ -199,7 +199,7 @@ public class UsuarioService {
         );
     }
 
-    private String resolverAccionAuditoria(UpdateUsuarioRequest request, RolUsuario rolAnterior, boolean activoAnterior, Usuario usuario) {
+    private String resolverAccionAuditoria(ActualizarUsuarioRequest request, RolUsuario rolAnterior, boolean activoAnterior, Usuario usuario) {
         if (request.rol() != null && rolAnterior != usuario.getRol()) {
             return "CAMBIO_ROL_USUARIO";
         }

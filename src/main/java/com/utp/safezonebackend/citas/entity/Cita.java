@@ -11,7 +11,7 @@ import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
 
 @Entity
-@Table(name = "citas")
+@Table(name = "cita")
 public class Cita {
 
     @Id

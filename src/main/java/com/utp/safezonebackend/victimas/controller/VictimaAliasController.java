@@ -1,8 +1,8 @@
 package com.utp.safezonebackend.victimas.controller;
 
-import com.utp.safezonebackend.victimas.dto.request.CreateVictimaAliasRequest;
+import com.utp.safezonebackend.victimas.dto.request.CrearVictimaAliasRequest;
 import com.utp.safezonebackend.victimas.dto.request.InhabilitarVictimaAliasRequest;
-import com.utp.safezonebackend.victimas.dto.request.UpdateVictimaAliasRequest;
+import com.utp.safezonebackend.victimas.dto.request.ActualizarVictimaAliasRequest;
 import com.utp.safezonebackend.victimas.dto.response.VictimaAliasResponse;
 import com.utp.safezonebackend.victimas.service.VictimaAliasService;
 
@@ -54,7 +54,7 @@ public class VictimaAliasController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @PostMapping
-    public ResponseEntity<VictimaAliasResponse> create(@RequestBody @Valid CreateVictimaAliasRequest request) {
+    public ResponseEntity crear(@RequestBody @Valid CrearVictimaAliasRequest request) {
         return ResponseEntity.ok(service.create(request));
     }
 
@@ -66,7 +66,7 @@ public class VictimaAliasController {
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @PutMapping("/{id}/actualizar")
-    public ResponseEntity<VictimaAliasResponse> update(@PathVariable String id, @RequestBody UpdateVictimaAliasRequest request) {
+    public ResponseEntity actualizar(@PathVariable String id, @RequestBody ActualizarVictimaAliasRequest request) {
         return ResponseEntity.ok(service.update(id, request));
     }
 

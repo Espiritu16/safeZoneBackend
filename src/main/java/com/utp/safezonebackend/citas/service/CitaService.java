@@ -1,7 +1,7 @@
 package com.utp.safezonebackend.citas.service;
 
-import com.utp.safezonebackend.citas.dto.request.CreateCitaRequest;
-import com.utp.safezonebackend.citas.dto.request.UpdateCitaRequest;
+import com.utp.safezonebackend.citas.dto.request.CrearCitaRequest;
+import com.utp.safezonebackend.citas.dto.request.ActualizarCitaRequest;
 import com.utp.safezonebackend.citas.dto.response.CitaResponse;
 import com.utp.safezonebackend.citas.mapper.CitaMapper;
 import com.utp.safezonebackend.citas.repository.CitaRepository;
@@ -27,11 +27,11 @@ public class CitaService {
         throw new UnsupportedOperationException("Pendiente de implementar");
     }
 
-    public CitaResponse create(CreateCitaRequest request) {
+    public CitaResponse create(CrearCitaRequest request) {
         throw new UnsupportedOperationException("Pendiente de implementar");
     }
 
-    public CitaResponse update(String id, UpdateCitaRequest request) {
+    public CitaResponse update(String id, ActualizarCitaRequest request) {
         throw new UnsupportedOperationException("Pendiente de implementar");
     }
 
