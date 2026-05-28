@@ -10,6 +10,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.OffsetDateTime;
 
+import lombok.Data;
+
+@Data
 @Entity
 @Table(name = "citas")
 public class Cita {
