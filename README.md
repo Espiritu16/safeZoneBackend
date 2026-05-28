@@ -1,103 +1,247 @@
 # SafeZone Backend
 
-Backend de la plataforma web **SafeZone**, orientada al registro y seguimiento de casos de violencia familiar.  
-El sistema centraliza la gestion de denuncias, casos, citas, asignaciones, evidencias, notificaciones y trazabilidad operativa para los distintos roles de atencion.
+## 1. Descripcion del proyecto
+Backend de la plataforma **SafeZone**, orientada al registro y seguimiento de denuncias de violencia familiar con atencion asistida y control de acceso por roles.
 
-## Objetivo del backend
+Este repositorio contiene:
+- API REST de negocio por modulos funcionales.
+- Persistencia JPA con MySQL.
+- Seguridad con Spring Security.
+- Migraciones con Flyway.
+- Documentacion OpenAPI/Swagger.
 
-Proveer una API REST segura y modular para:
+## 2. Objetivo del backend
+Proveer una API segura, modular y trazable para:
+- autenticar usuarios,
+- gestionar victimas, denuncias y casos,
+- asignar profesionales y registrar seguimientos,
+- gestionar citas, evidencias y notificaciones,
+- mantener auditoria y configuracion del sistema,
+- generar reportes operativos.
 
-- Registrar y administrar denuncias y casos.
-- Dar seguimiento al ciclo de vida de cada caso.
-- Gestionar usuarios y control de acceso por autenticacion.
-- Mantener trazabilidad y configuracion operativa del sistema.
+## 2.1 Estado de implementacion
+- Reestructura aplicada a arquitectura **por funcionalidad** (feature-first).
+- Paquetes antiguos por capa tecnica (`domain`, `web`, `persistance`) migrados a modulos de negocio.
+- Compilacion verificada con `mvn -q -DskipTests compile`.
+- Implementacion de metodos de servicio aun parcial en varios modulos (placeholders pendientes).
 
-## Stack y dependencias principales
+## 3. Arquitectura y stack
+| Stack | Uso en el proyecto |
+|---|---|
+| Java 21 | Lenguaje base del backend. |
+| Spring Boot 3.5.13 | Framework principal para API REST. |
+| Spring Web | Endpoints HTTP y controladores. |
+| Spring Data JPA | Persistencia ORM y repositorios. |
+| Spring Security | Seguridad y control de acceso. |
+| Spring Validation | Validacion de requests (`@Valid`). |
+| MySQL Connector/J | Conexion a base de datos MySQL. |
+| Flyway | Migraciones versionadas de BD. |
+| Springdoc OpenAPI | Swagger UI y especificacion OpenAPI. |
+| Lombok | Reduccion de boilerplate. |
+| JUnit + Spring Test | Pruebas de backend. |
 
-- **Java 21**
-- **Spring Boot 3.5.13**
-- **Spring Web** (`spring-boot-starter-web`)
-- **Spring Data JPA** (`spring-boot-starter-data-jpa`)
-- **Spring Security** (`spring-boot-starter-security`)
-- **Bean Validation** (`spring-boot-starter-validation`)
-- **MySQL Connector/J** (`mysql-connector-j`)
-- **Flyway** (`flyway-core`)
-- **OpenAPI/Swagger UI** (`springdoc-openapi-starter-webmvc-ui`)
-- **Lombok**
-- **JUnit/Spring Test** (`spring-boot-starter-test`, `spring-security-test`)
+## 4. Dependencias principales
+Dependencias declaradas en `pom.xml`:
 
-## Arquitectura y estructura del proyecto
+**Dependencias de produccion:**
+- `spring-boot-starter-web`
+- `spring-boot-starter-data-jpa`
+- `spring-boot-starter-security`
+- `spring-boot-starter-validation`
+- `mysql-connector-j`
+- `flyway-core`
+- `springdoc-openapi-starter-webmvc-ui` `2.8.16`
+- `lombok`
 
-El proyecto esta organizado en capas para separar responsabilidades:
+**Dependencias de pruebas:**
+- `spring-boot-starter-test`
+- `spring-security-test`
 
-- `domain`: logica de aplicacion (servicios, contratos de repositorio, DTOs, mapeos, validaciones, enums).
-- `persistance`: entidades JPA que representan el modelo persistente.
-- `web`: capa de entrada HTTP (controladores REST).
-- `shared`: componentes transversales (configuracion, seguridad, excepciones, auditoria, utilidades y respuestas comunes).
-
-### Estructura base actual
-
+## 5. Estructura del proyecto
 ```text
-src/main/java/com/utp/safezonebackend
-├── domain
-│   ├── dto
-│   │   ├── request
-│   │   └── response
-│   ├── enums
-│   ├── mapper
-│   ├── repository
-│   ├── service
-│   └── validator
-├── persistance
-│   └── entity
-├── shared
-│   ├── audit
-│   ├── config
-│   ├── exception
-│   ├── response
-│   ├── security
-│   └── util
-└── web
-    └── controller
+safeZoneBackend/
+├── src/
+│   ├── main/
+│   │   ├── java/com/utp/safezonebackend/
+│   │   │   ├── auth/                     # Autenticacion y refresh token.
+│   │   │   ├── usuarios/                 # Gestion de usuarios y roles.
+│   │   │   ├── victimas/                 # Alias y operaciones de victimas.
+│   │   │   ├── denuncias/                # Registro y consulta de denuncias.
+│   │   │   ├── casos/                    # Ciclo de vida de casos.
+│   │   │   ├── asignaciones/             # Asignacion de profesionales.
+│   │   │   ├── seguimientos/             # Seguimiento de caso.
+│   │   │   ├── citas/                    # Programacion y atencion de citas.
+│   │   │   ├── evidencias/               # Evidencias digitales asociadas.
+│   │   │   ├── notificaciones/           # Alertas y notificaciones.
+│   │   │   ├── configuracion/            # Parametros globales del sistema.
+│   │   │   ├── auditoria/                # Trazabilidad de acciones.
+│   │   │   ├── reportes/                 # Consultas y reportes operativos.
+│   │   │   ├── shared/                   # Seguridad, excepciones y utilidades transversales.
+│   │   │   └── ProyectoIntegradorBackendApplication.java
+│   │   └── resources/
+│   │       ├── application.properties
+│   │       └── bd/
+│   │           └── safezonedb_schema.md
+│   └── test/
+│       └── java/
+├── informe/
+├── pom.xml
+└── README.md
 ```
 
-## Modulos funcionales implementados
+## 6. Estructura interna por modulo
+Cada modulo sigue una organizacion consistente:
 
-El backend contempla los siguientes modulos de negocio:
+- `controller/` endpoints REST.
+- `service/` reglas de negocio del modulo.
+- `repository/` acceso a datos.
+- `entity/` entidades persistentes.
+- `dto/request` y `dto/response` contratos API.
+- `mapper/` conversion entidad <-> DTO.
+- `enums/` (cuando el modulo lo requiere).
 
-- **Auth**
-- **Usuarios**
-- **Denuncias**
-- **Casos**
-- **Seguimientos de caso**
-- **Asignaciones de caso**
-- **Citas**
-- **Evidencias**
-- **Notificaciones**
-- **Reportes**
-- **Configuracion del sistema**
-- **Auditoria**
-- **Victima Alias**
-- **Refresh Token**
+## 7. Modulos funcionales del backend
+Modulos actualmente definidos:
+- `auth`
+- `usuarios`
+- `victimas`
+- `denuncias`
+- `casos`
+- `asignaciones`
+- `seguimientos`
+- `citas`
+- `evidencias`
+- `notificaciones`
+- `configuracion`
+- `auditoria`
+- `reportes`
 
-## Modelo persistente (entidades)
+## 8. Seguridad y acceso
+Modelo de seguridad esperado:
+- autenticacion por credenciales en `auth`.
+- control de acceso por rol para endpoints sensibles.
+- trazabilidad de operaciones criticas en `auditoria`.
+- configuracion de seguridad operativa en `configuracion`.
 
-Entidades principales registradas en `persistance/entity`:
+Roles de negocio del sistema:
+- `VICTIMA`
+- `RECEPCIONISTA`
+- `PSICOLOGO`
+- `DEFENSOR`
+- `SOPORTE`
+- `ADMIN`
 
-- `Usuario`
-- `Denuncia`
-- `Caso`
-- `SeguimientoCaso`
-- `AsignacionCaso`
-- `Cita`
-- `Evidencia`
-- `Notificacion`
-- `ConfiguracionSistema`
-- `Auditoria`
-- `VictimaAlias`
-- `RefreshToken`
+## 9. Integracion con base de datos
+Base objetivo: `safezonedb`.
 
-## Documentacion tecnica complementaria
+Fuentes en repositorio:
+- `src/main/resources/application.properties`
+- `src/main/resources/bd/safezonedb_schema.md`
 
+- Carpeta `docs/`:
+  - `LOGICA_NEGOCIO.md`: definicion funcional del sistema, reglas por modulo, permisos por rol y flujo de atencion.
+  - `safezonedb_export_20260525_061915.sql`: export completo de la base de datos (`safezonedb`) para importacion en entornos locales.
+  - `safezonedb_alter_predenuncias.sql`: script incremental para agregar flujo de predenuncia y formalizacion asistida.
 - Carpeta `informe/`: documentos de soporte funcional y tecnico del proyecto.
 - Carpeta `src/main/resources/bd/`: referencia de estructura de base de datos.
+
+Tablas principales (segun modelo del proyecto):
+- `usuarios`
+- `victimas_alias`
+- `denuncias`
+- `casos`
+- `asignaciones_caso`
+- `seguimientos_caso`
+- `citas`
+- `evidencias`
+- `notificaciones`
+- `configuracion_sistema`
+- `auditoria`
+- `refresh_tokens`
+
+## 10. Configuracion local
+Archivo principal:
+- `src/main/resources/application.properties`
+
+Claves relevantes:
+- `server.port`
+- `spring.datasource.*`
+- `spring.jpa.*`
+- `spring.flyway.*`
+- `springdoc.*`
+
+## 11. Endpoints y documentacion API
+Con `springdoc-openapi` habilitado:
+
+- Swagger UI: `http://localhost:8082/swagger-ui/index.html`
+- OpenAPI JSON: `http://localhost:8082/v3/api-docs`
+
+## 12. Ejecucion local
+Compilar:
+```bash
+mvn clean compile
+```
+
+Ejecutar:
+```bash
+mvn spring-boot:run
+```
+
+Build:
+```bash
+mvn clean package
+```
+
+## 13. Pruebas
+Ejecutar pruebas:
+```bash
+mvn test
+```
+
+Estado actual:
+- Existe dependencia de testing.
+- Se recomienda reforzar cobertura por modulo (`service` y `controller`) en siguientes iteraciones.
+
+## 14. Diagrama de arquitectura por modulos
+```mermaid
+flowchart TB
+  subgraph API["Capa API"]
+    CTRL["controllers por modulo"]
+  end
+
+  subgraph APP["Capa Aplicacion"]
+    SVC["services por modulo"]
+    MAP["mappers por modulo"]
+    DTO["dto/request y dto/response"]
+  end
+
+  subgraph DATA["Capa Datos"]
+    ENT["entities por modulo"]
+    REP["repositories por modulo"]
+    DB[("MySQL safezonedb")]
+  end
+
+  subgraph SHARED["Transversal"]
+    SEC["shared/security"]
+    EXC["shared/exception"]
+    CFG["shared/config"]
+    UTL["shared/util y response"]
+  end
+
+  CTRL --> SVC
+  SVC --> MAP
+  SVC --> REP
+  MAP --> DTO
+  REP --> ENT
+  REP --> DB
+  CTRL --> SEC
+  CTRL --> EXC
+  SVC --> EXC
+  SVC --> CFG
+  SVC --> UTL
+```
+
+## 15. Nota de alcance
+Este README documenta el backend y su estructura actual por funcionalidad.
+
+La reestructura organiza mejor el dominio por modulo, pero no implica que toda la logica de cada servicio este completamente implementada. El siguiente paso natural es cerrar implementaciones pendientes y cubrirlas con pruebas por modulo.
