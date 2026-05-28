@@ -1,7 +1,7 @@
 package com.utp.safezonebackend.seguimientos.controller;
 
-import com.utp.safezonebackend.seguimientos.dto.request.CreateSeguimientoCasoRequest;
-import com.utp.safezonebackend.seguimientos.dto.request.UpdateSeguimientoCasoRequest;
+import com.utp.safezonebackend.seguimientos.dto.request.CrearSeguimientoCasoRequest;
+import com.utp.safezonebackend.seguimientos.dto.request.ActualizarSeguimientoCasoRequest;
 import com.utp.safezonebackend.seguimientos.dto.response.SeguimientoCasoResponse;
 import com.utp.safezonebackend.seguimientos.service.SeguimientoCasoService;
 import java.util.List;
@@ -58,7 +58,7 @@ public class SeguimientoCasoController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @PostMapping
-    public ResponseEntity<SeguimientoCasoResponse> create(@RequestBody CreateSeguimientoCasoRequest request) {
+    public ResponseEntity crear(@RequestBody CrearSeguimientoCasoRequest request) {
         return ResponseEntity.ok(service.create(request));
     }
 
@@ -70,7 +70,7 @@ public class SeguimientoCasoController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @PutMapping("/{id}/inactivar")
-    public ResponseEntity<SeguimientoCasoResponse> update(@PathVariable String id, @RequestBody UpdateSeguimientoCasoRequest request) {
+    public ResponseEntity actualizar(@PathVariable String id, @RequestBody ActualizarSeguimientoCasoRequest request) {
         return ResponseEntity.ok(service.update(id, request));
     }
 

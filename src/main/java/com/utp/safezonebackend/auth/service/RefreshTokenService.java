@@ -1,7 +1,7 @@
 package com.utp.safezonebackend.auth.service;
 
-import com.utp.safezonebackend.auth.dto.request.CreateRefreshTokenRequest;
-import com.utp.safezonebackend.auth.dto.request.UpdateRefreshTokenRequest;
+import com.utp.safezonebackend.auth.dto.request.CrearRefreshTokenRequest;
+import com.utp.safezonebackend.auth.dto.request.ActualizarRefreshTokenRequest;
 import com.utp.safezonebackend.auth.dto.response.RefreshTokenResponse;
 import com.utp.safezonebackend.auth.entity.RefreshToken;
 import com.utp.safezonebackend.auth.mapper.RefreshTokenMapper;
@@ -34,11 +34,11 @@ public class RefreshTokenService {
         return mapper.toResponse(obtenerToken(id));
     }
 
-    public RefreshTokenResponse create(CreateRefreshTokenRequest request) {
+    public RefreshTokenResponse create(CrearRefreshTokenRequest request) {
         throw new ExcepcionNegocio("La creacion manual de refresh tokens no esta permitida");
     }
 
-    public RefreshTokenResponse update(String id, UpdateRefreshTokenRequest request) {
+    public RefreshTokenResponse update(String id, ActualizarRefreshTokenRequest request) {
         throw new ExcepcionNegocio("La actualizacion manual de refresh tokens no esta permitida");
     }
 

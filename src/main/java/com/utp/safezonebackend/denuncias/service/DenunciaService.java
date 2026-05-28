@@ -1,7 +1,7 @@
 package com.utp.safezonebackend.denuncias.service;
 
-import com.utp.safezonebackend.denuncias.dto.request.CreateDenunciaRequest;
-import com.utp.safezonebackend.denuncias.dto.request.UpdateDenunciaRequest;
+import com.utp.safezonebackend.denuncias.dto.request.CrearDenunciaRequest;
+import com.utp.safezonebackend.denuncias.dto.request.ActualizarDenunciaRequest;
 import com.utp.safezonebackend.denuncias.dto.response.DenunciaResponse;
 import com.utp.safezonebackend.denuncias.mapper.DenunciaMapper;
 import com.utp.safezonebackend.denuncias.repository.DenunciaRepository;
@@ -27,11 +27,11 @@ public class DenunciaService {
         throw new UnsupportedOperationException("Pendiente de implementar");
     }
 
-    public DenunciaResponse create(CreateDenunciaRequest request) {
+    public DenunciaResponse create(CrearDenunciaRequest request) {
         throw new UnsupportedOperationException("Pendiente de implementar");
     }
 
-    public DenunciaResponse update(String id, UpdateDenunciaRequest request) {
+    public DenunciaResponse update(String id, ActualizarDenunciaRequest request) {
         throw new UnsupportedOperationException("Pendiente de implementar");
     }
 

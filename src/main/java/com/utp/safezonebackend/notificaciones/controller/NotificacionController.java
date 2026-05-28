@@ -1,7 +1,7 @@
 package com.utp.safezonebackend.notificaciones.controller;
 
-import com.utp.safezonebackend.notificaciones.dto.request.CreateNotificacionRequest;
-import com.utp.safezonebackend.notificaciones.dto.request.UpdateNotificacionRequest;
+import com.utp.safezonebackend.notificaciones.dto.request.CrearNotificacionRequest;
+import com.utp.safezonebackend.notificaciones.dto.request.ActualizarNotificacionRequest;
 import com.utp.safezonebackend.notificaciones.dto.response.NotificacionResponse;
 import com.utp.safezonebackend.notificaciones.service.NotificacionService;
 import java.util.List;
@@ -58,7 +58,7 @@ public class NotificacionController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @PostMapping
-    public ResponseEntity<NotificacionResponse> create(@RequestBody CreateNotificacionRequest request) {
+    public ResponseEntity crear(@RequestBody CrearNotificacionRequest request) {
         return ResponseEntity.ok(service.create(request));
     }
 
@@ -70,7 +70,7 @@ public class NotificacionController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @PutMapping("/{id}/inactivar")
-    public ResponseEntity<NotificacionResponse> update(@PathVariable String id, @RequestBody UpdateNotificacionRequest request) {
+    public ResponseEntity actualizar(@PathVariable String id, @RequestBody ActualizarNotificacionRequest request) {
         return ResponseEntity.ok(service.update(id, request));
     }
 

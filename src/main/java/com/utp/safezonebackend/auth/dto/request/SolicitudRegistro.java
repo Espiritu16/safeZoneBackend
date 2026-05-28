@@ -20,7 +20,7 @@ public record SolicitudRegistro(
                 regexp = "^(?=.*[A-Z])(?=.*\\d).+$",
                 message = "La contrasena debe incluir al menos una mayuscula y un numero"
         )
-        String password
+        String contrasena
 ) {
 }
 
