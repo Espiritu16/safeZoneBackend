@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: safezone-backend
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    autoDeploy: false
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: MYSQL_DB_URL
+        sync: false
+      - key: MYSQL_DB_USERNAME
+        sync: false
+      - key: MYSQL_DB_PASSWORD
+        sync: false
+      - key: APP_JWT_SECRETO
+        sync: false
+      - key: APP_JWT_EXPIRACION_MINUTOS
+        value: "30"
+      - key: APP_AUTH_REFRESH_EXPIRACION_DIAS
+        value: "7"
+      - key: APP_CORREO_MODO_SIMULACION
+        value: "true"
+      - key: APP_CORREO_REMITENTE
+        value: no-reply@safezone.local
+      - key: FLYWAY_ENABLED
+        value: "false"
+      - key: JAVA_OPTS
+        value: -XX:MaxRAMPercentage=75.0

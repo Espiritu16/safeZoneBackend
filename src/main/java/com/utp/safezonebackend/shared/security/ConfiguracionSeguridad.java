@@ -39,6 +39,7 @@ public class ConfiguracionSeguridad {
                                 "/api/auth/recuperar-contrasena",
                                 "/api/auth/verificar-codigo",
                                 "/api/auth/restablecer-contrasena",
+                                "/health",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**"
                         ).permitAll()

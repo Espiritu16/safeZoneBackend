@@ -202,6 +202,28 @@ Estado actual:
 - Existe dependencia de testing.
 - Se recomienda reforzar cobertura por modulo (`service` y `controller`) en siguientes iteraciones.
 
+## 13.1 Despliegue en Render
+El backend queda preparado para desplegarse como **Web Service** usando Docker.
+
+Archivos de despliegue:
+- `Dockerfile`: build multi-stage con Java 21 y Maven.
+- `.dockerignore`: excluye binarios, Git, `.env`, `target/` y documentacion no requerida en la imagen.
+- `render.yaml`: blueprint de Render con health check en `/health`.
+
+Variables obligatorias en Render:
+- `MYSQL_DB_URL`: URL JDBC completa, por ejemplo `jdbc:mysql://host:3306/safezonedb?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Lima`.
+- `MYSQL_DB_USERNAME`: usuario de la base de datos.
+- `MYSQL_DB_PASSWORD`: contrasena de la base de datos.
+- `APP_JWT_SECRETO`: secreto JWT en Base64.
+
+Variables opcionales:
+- `APP_JWT_EXPIRACION_MINUTOS`: por defecto `30`.
+- `APP_AUTH_REFRESH_EXPIRACION_DIAS`: por defecto `7`.
+- `FLYWAY_ENABLED`: por defecto `false`.
+- `JAVA_OPTS`: opciones de JVM, por defecto `-XX:MaxRAMPercentage=75.0` en `render.yaml`.
+
+Render inyecta `PORT` automaticamente. La aplicacion usa `server.port=${PORT:8080}`, por lo que funciona en Render y localmente.
+
 ## 14. Diagrama de arquitectura por modulos
 ```mermaid
 flowchart TB
