@@ -1,8 +1,8 @@
 package com.utp.safezonebackend.auditoria.service;
 
-import com.utp.safezonebackend.auditoria.dto.request.CreateAuditoriaRequest;
+import com.utp.safezonebackend.auditoria.dto.request.CrearAuditoriaRequest;
 import com.utp.safezonebackend.auditoria.dto.request.RegistroAuditoriaInterna;
-import com.utp.safezonebackend.auditoria.dto.request.UpdateAuditoriaRequest;
+import com.utp.safezonebackend.auditoria.dto.request.ActualizarAuditoriaRequest;
 import com.utp.safezonebackend.auditoria.dto.response.AuditoriaResponse;
 import com.utp.safezonebackend.auditoria.entity.Auditoria;
 import com.utp.safezonebackend.auditoria.enums.ResultadoAuditoria;
@@ -39,12 +39,12 @@ public class AuditoriaService {
     }
 
     @Transactional
-    public AuditoriaResponse create(CreateAuditoriaRequest request) {
+    public AuditoriaResponse create(CrearAuditoriaRequest request) {
         throw new UnsupportedOperationException("Creacion manual de auditoria no permitida");
     }
 
     @Transactional
-    public AuditoriaResponse update(String id, UpdateAuditoriaRequest request) {
+    public AuditoriaResponse update(String id, ActualizarAuditoriaRequest request) {
         throw new UnsupportedOperationException("Actualizacion manual de auditoria no permitida");
     }
 

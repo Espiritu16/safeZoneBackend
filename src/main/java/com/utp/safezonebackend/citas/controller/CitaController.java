@@ -1,7 +1,7 @@
 package com.utp.safezonebackend.citas.controller;
 
-import com.utp.safezonebackend.citas.dto.request.CreateCitaRequest;
-import com.utp.safezonebackend.citas.dto.request.UpdateCitaRequest;
+import com.utp.safezonebackend.citas.dto.request.CrearCitaRequest;
+import com.utp.safezonebackend.citas.dto.request.ActualizarCitaRequest;
 import com.utp.safezonebackend.citas.dto.response.CitaResponse;
 import com.utp.safezonebackend.citas.service.CitaService;
 import java.util.List;
@@ -58,7 +58,7 @@ public class CitaController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @PostMapping
-    public ResponseEntity<CitaResponse> create(@RequestBody CreateCitaRequest request) {
+    public ResponseEntity crear(@RequestBody CrearCitaRequest request) {
         return ResponseEntity.ok(service.create(request));
     }
 
@@ -70,7 +70,7 @@ public class CitaController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @PutMapping("/{id}/inactivar")
-    public ResponseEntity<CitaResponse> update(@PathVariable String id, @RequestBody UpdateCitaRequest request) {
+    public ResponseEntity actualizar(@PathVariable String id, @RequestBody ActualizarCitaRequest request) {
         return ResponseEntity.ok(service.update(id, request));
     }
 

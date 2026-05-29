@@ -1,7 +1,7 @@
 package com.utp.safezonebackend.evidencias.service;
 
-import com.utp.safezonebackend.evidencias.dto.request.CreateEvidenciaRequest;
-import com.utp.safezonebackend.evidencias.dto.request.UpdateEvidenciaRequest;
+import com.utp.safezonebackend.evidencias.dto.request.CrearEvidenciaRequest;
+import com.utp.safezonebackend.evidencias.dto.request.ActualizarEvidenciaRequest;
 import com.utp.safezonebackend.evidencias.dto.response.EvidenciaResponse;
 import com.utp.safezonebackend.evidencias.mapper.EvidenciaMapper;
 import com.utp.safezonebackend.evidencias.repository.EvidenciaRepository;
@@ -27,11 +27,11 @@ public class EvidenciaService {
         throw new UnsupportedOperationException("Pendiente de implementar");
     }
 
-    public EvidenciaResponse create(CreateEvidenciaRequest request) {
+    public EvidenciaResponse create(CrearEvidenciaRequest request) {
         throw new UnsupportedOperationException("Pendiente de implementar");
     }
 
-    public EvidenciaResponse update(String id, UpdateEvidenciaRequest request) {
+    public EvidenciaResponse update(String id, ActualizarEvidenciaRequest request) {
         throw new UnsupportedOperationException("Pendiente de implementar");
     }
 
