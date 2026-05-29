@@ -3,11 +3,12 @@ package com.utp.safezonebackend.shared.security;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 public class ConfiguracionSeguridad {
@@ -41,6 +42,7 @@ public class ConfiguracionSeguridad {
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**"
                         ).permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/predenuncias").permitAll()
                         .requestMatchers(
                                 "/api/auth/refresh-tokens/**",
                                 "/api/usuarios/**",
@@ -48,13 +50,17 @@ public class ConfiguracionSeguridad {
                                 "/api/auditoria/**",
                                 "/api/reportes/**"
                         ).hasRole("ADMIN")
+                        .requestMatchers("/api/panel-principal/**")
+                        .hasAnyRole("ADMIN", "RECEPCIONISTA", "PSICOLOGO", "DEFENSOR", "VICTIMA")
+                        .requestMatchers("/api/predenuncias/**")
+                        .hasAnyRole("ADMIN", "RECEPCIONISTA")
                         .requestMatchers("/api/casos/**")
                         .hasAnyRole("ADMIN", "RECEPCIONISTA", "PSICOLOGO", "DEFENSOR")
                         // Citas — profesionales y recepcionista
                         .requestMatchers("/api/citas/**")
                         .hasAnyRole("ADMIN", "RECEPCIONISTA", "PSICOLOGO", "DEFENSOR")
                         // Víctimas y alias — personal autorizado
-                        .requestMatchers("/api/victimas/**")
+                        .requestMatchers("/api/victimas/**", "/api/victimasalias/**")
                         .hasAnyRole("ADMIN", "RECEPCIONISTA", "PSICOLOGO", "DEFENSOR")
                         // Denuncias
                         .requestMatchers("/api/denuncias/**")
