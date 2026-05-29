@@ -1,7 +1,7 @@
 package com.utp.safezonebackend.configuracion.controller;
 
-import com.utp.safezonebackend.configuracion.dto.request.CreateConfiguracionSistemaRequest;
-import com.utp.safezonebackend.configuracion.dto.request.UpdateConfiguracionSistemaRequest;
+import com.utp.safezonebackend.configuracion.dto.request.CrearConfiguracionSistemaRequest;
+import com.utp.safezonebackend.configuracion.dto.request.ActualizarConfiguracionSistemaRequest;
 import com.utp.safezonebackend.configuracion.dto.response.ConfiguracionSistemaResponse;
 import com.utp.safezonebackend.configuracion.service.ConfiguracionSeguridadService;
 import com.utp.safezonebackend.configuracion.service.ConfiguracionSistemaService;
@@ -69,7 +69,7 @@ public class ConfiguracionSistemaController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @PostMapping
-    public ResponseEntity<ConfiguracionSistemaResponse> create(@Valid @RequestBody CreateConfiguracionSistemaRequest request) {
+    public ResponseEntity crear(@Valid @RequestBody CrearConfiguracionSistemaRequest request) {
         return ResponseEntity.ok(service.create(request));
     }
 
@@ -81,7 +81,7 @@ public class ConfiguracionSistemaController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @PutMapping("/{id}")
-    public ResponseEntity<ConfiguracionSistemaResponse> update(@PathVariable Long id, @Valid @RequestBody UpdateConfiguracionSistemaRequest request) {
+    public ResponseEntity actualizar(@PathVariable Long id, @Valid @RequestBody ActualizarConfiguracionSistemaRequest request) {
         return ResponseEntity.ok(service.update(id, request));
     }
 

@@ -1,7 +1,7 @@
 package com.utp.safezonebackend.evidencias.controller;
 
-import com.utp.safezonebackend.evidencias.dto.request.CreateEvidenciaRequest;
-import com.utp.safezonebackend.evidencias.dto.request.UpdateEvidenciaRequest;
+import com.utp.safezonebackend.evidencias.dto.request.CrearEvidenciaRequest;
+import com.utp.safezonebackend.evidencias.dto.request.ActualizarEvidenciaRequest;
 import com.utp.safezonebackend.evidencias.dto.response.EvidenciaResponse;
 import com.utp.safezonebackend.evidencias.service.EvidenciaService;
 import java.util.List;
@@ -58,7 +58,7 @@ public class EvidenciaController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @PostMapping
-    public ResponseEntity<EvidenciaResponse> create(@RequestBody CreateEvidenciaRequest request) {
+    public ResponseEntity crear(@RequestBody CrearEvidenciaRequest request) {
         return ResponseEntity.ok(service.create(request));
     }
 
@@ -70,7 +70,7 @@ public class EvidenciaController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @PutMapping("/{id}/inactivar")
-    public ResponseEntity<EvidenciaResponse> update(@PathVariable String id, @RequestBody UpdateEvidenciaRequest request) {
+    public ResponseEntity actualizar(@PathVariable String id, @RequestBody ActualizarEvidenciaRequest request) {
         return ResponseEntity.ok(service.update(id, request));
     }
 

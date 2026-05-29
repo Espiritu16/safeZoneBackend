@@ -1,7 +1,7 @@
 package com.utp.safezonebackend.notificaciones.service;
 
-import com.utp.safezonebackend.notificaciones.dto.request.CreateNotificacionRequest;
-import com.utp.safezonebackend.notificaciones.dto.request.UpdateNotificacionRequest;
+import com.utp.safezonebackend.notificaciones.dto.request.CrearNotificacionRequest;
+import com.utp.safezonebackend.notificaciones.dto.request.ActualizarNotificacionRequest;
 import com.utp.safezonebackend.notificaciones.dto.response.NotificacionResponse;
 import com.utp.safezonebackend.notificaciones.mapper.NotificacionMapper;
 import com.utp.safezonebackend.notificaciones.repository.NotificacionRepository;
@@ -27,11 +27,11 @@ public class NotificacionService {
         throw new UnsupportedOperationException("Pendiente de implementar");
     }
 
-    public NotificacionResponse create(CreateNotificacionRequest request) {
+    public NotificacionResponse create(CrearNotificacionRequest request) {
         throw new UnsupportedOperationException("Pendiente de implementar");
     }
 
-    public NotificacionResponse update(String id, UpdateNotificacionRequest request) {
+    public NotificacionResponse update(String id, ActualizarNotificacionRequest request) {
         throw new UnsupportedOperationException("Pendiente de implementar");
     }
 

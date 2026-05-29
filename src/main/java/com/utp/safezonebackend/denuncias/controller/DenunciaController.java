@@ -1,7 +1,7 @@
 package com.utp.safezonebackend.denuncias.controller;
 
-import com.utp.safezonebackend.denuncias.dto.request.CreateDenunciaRequest;
-import com.utp.safezonebackend.denuncias.dto.request.UpdateDenunciaRequest;
+import com.utp.safezonebackend.denuncias.dto.request.CrearDenunciaRequest;
+import com.utp.safezonebackend.denuncias.dto.request.ActualizarDenunciaRequest;
 import com.utp.safezonebackend.denuncias.dto.response.DenunciaResponse;
 import com.utp.safezonebackend.denuncias.service.DenunciaService;
 import java.util.List;
@@ -58,7 +58,7 @@ public class DenunciaController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @PostMapping
-    public ResponseEntity<DenunciaResponse> create(@RequestBody CreateDenunciaRequest request) {
+    public ResponseEntity crear(@RequestBody CrearDenunciaRequest request) {
         return ResponseEntity.ok(service.create(request));
     }
 
@@ -70,7 +70,7 @@ public class DenunciaController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @PutMapping("/{id}/inactivar")
-    public ResponseEntity<DenunciaResponse> update(@PathVariable String id, @RequestBody UpdateDenunciaRequest request) {
+    public ResponseEntity actualizar(@PathVariable String id, @RequestBody ActualizarDenunciaRequest request) {
         return ResponseEntity.ok(service.update(id, request));
     }
 

@@ -1,7 +1,7 @@
 package com.utp.safezonebackend.auth.controller;
 
-import com.utp.safezonebackend.auth.dto.request.CreateRefreshTokenRequest;
-import com.utp.safezonebackend.auth.dto.request.UpdateRefreshTokenRequest;
+import com.utp.safezonebackend.auth.dto.request.CrearRefreshTokenRequest;
+import com.utp.safezonebackend.auth.dto.request.ActualizarRefreshTokenRequest;
 import com.utp.safezonebackend.auth.dto.response.RefreshTokenResponse;
 import com.utp.safezonebackend.auth.service.RefreshTokenService;
 import java.util.List;
@@ -58,7 +58,7 @@ public class RefreshTokenController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @PostMapping
-    public ResponseEntity<RefreshTokenResponse> create(@RequestBody CreateRefreshTokenRequest request) {
+    public ResponseEntity crear(@RequestBody CrearRefreshTokenRequest request) {
         return ResponseEntity.ok(service.create(request));
     }
 
@@ -70,7 +70,7 @@ public class RefreshTokenController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @PutMapping("/{id}")
-    public ResponseEntity<RefreshTokenResponse> update(@PathVariable String id, @RequestBody UpdateRefreshTokenRequest request) {
+    public ResponseEntity actualizar(@PathVariable String id, @RequestBody ActualizarRefreshTokenRequest request) {
         return ResponseEntity.ok(service.update(id, request));
     }
 

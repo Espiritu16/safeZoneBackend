@@ -7,7 +7,7 @@ import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "recuperacion_contrasena_codigos")
+@Table(name = "recuperacion_contrasena_codigo")
 public class RecuperacionContrasenaCodigo {
 
     @Id

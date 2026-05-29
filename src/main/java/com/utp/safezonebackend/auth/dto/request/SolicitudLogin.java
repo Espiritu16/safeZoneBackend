@@ -9,7 +9,7 @@ public record SolicitudLogin(
         String correo,
 
         @NotBlank(message = "La contrasena es obligatoria")
-        String password
+        String contrasena
 ) {
 }
 

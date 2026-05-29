@@ -19,7 +19,6 @@ Fuente de apoyo:
 | `RECEPCIONISTA` | Atender predenuncias, contactar victima, registrar denuncia asistida, clasificar riesgo inicial y crear caso. | Panel operativo. |
 | `PSICOLOGO` | Atender casos asignados, registrar observaciones, acciones y proximas acciones. | Panel profesional. |
 | `DEFENSOR` | Atender casos asignados desde el enfoque legal, registrar acciones y seguimiento. | Panel profesional. |
-| `SOPORTE` | Apoyar operacion, revisar trazabilidad y monitorear incidencias operativas. | Panel operativo restringido. |
 | `ADMIN` | Administrar usuarios, roles, configuracion, auditoria y reportes. | Panel administrativo completo. |
 
 ## 3. Modulos funcionales
@@ -182,7 +181,7 @@ Reglas del proceso:
 
 Reglas del proceso:
 - La victima solo ve informacion asociada a su usuario.
-- No debe ver notas internas restringidas de psicologos, defensores o soporte.
+- No debe ver notas internas restringidas de psicologos, defensores o admin.
 - El historial debe mostrar estado del caso, citas, evidencias permitidas y notificaciones relevantes.
 - El acceso a expedientes sensibles debe auditarse.
 
@@ -192,12 +191,11 @@ Reglas del proceso:
 | Admin | Gestiona usuarios y roles. | Usuarios activos/inactivos y roles asignados. |
 | Admin | Configura reglas de seguridad. | Parametros actualizados. |
 | Sistema | Aplica configuracion en autenticacion/sesion. | Seguridad operativa. |
-| Admin/Soporte | Consulta auditoria. | Eventos filtrados por actor, entidad o fecha. |
+| Admin | Consulta auditoria. | Eventos filtrados por actor, entidad o fecha. |
 | Sistema | Mantiene eventos inalterables. | Trazabilidad confiable. |
 
 Reglas del proceso:
 - Solo admin debe modificar roles y configuracion sensible.
-- Soporte puede consultar trazabilidad si el rol lo permite.
 - La auditoria no se edita ni elimina desde frontend.
 - La configuracion debe guardar responsable de creacion/actualizacion.
 
@@ -239,7 +237,7 @@ Reglas:
 | `EN_ATENCION` | `DERIVADO` | Psicologo/Defensor/Admin | Caso requiere atencion externa o cambio de responsable. |
 | `EN_ATENCION` | `CERRADO` | Psicologo/Defensor/Admin | Atencion concluida y seguimiento final registrado. |
 | `DERIVADO` | `EN_ATENCION` | Recepcionista/Admin | Se confirma nueva atencion interna. |
-| `CERRADO` | `ARCHIVADO` | Admin/Soporte autorizado | Caso cerrado sin actividad pendiente. |
+| `CERRADO` | `ARCHIVADO` | Admin | Caso cerrado sin actividad pendiente. |
 
 Validaciones:
 - No cerrar un caso con citas programadas pendientes.
@@ -312,7 +310,7 @@ Reglas:
 Vista esperada:
 - Recepcionista: revisa predenuncias y registra denuncia asistida.
 - Victima: puede iniciar predenuncia y consultar sus denuncias formalizadas.
-- Admin/soporte: puede consultar y auditar.
+- Admin: puede consultar y auditar.
 
 ## 8. Asignacion de profesionales
 Requerimiento relacionado:
@@ -337,14 +335,14 @@ Requerimientos relacionados:
 
 Reglas:
 - Cada seguimiento pertenece a un caso.
-- El autor debe ser psicologo, defensor, soporte o admin.
+- El autor debe ser psicologo, defensor o admin.
 - Debe registrar tipo de seguimiento, contenido, proxima accion y fecha de proxima accion si aplica.
 - Los seguimientos forman parte del expediente del caso.
 - La victima solo debe ver informacion permitida, no necesariamente todas las notas internas.
 
 Vista esperada:
 - Psicologo/defensor: registra seguimiento.
-- Admin/soporte: revisa expediente completo segun permisos.
+- Admin: revisa expediente completo segun permisos.
 - Victima: ve historial resumido o autorizado.
 
 ## 10. Citas y atencion
@@ -385,7 +383,7 @@ Reglas:
 Vista esperada:
 - Recepcionista/profesional: registra evidencia.
 - Victima: puede consultar evidencias permitidas.
-- Admin/soporte: audita evidencias.
+- Admin: audita evidencias.
 
 ## 12. Notificaciones
 Requerimiento relacionado:
@@ -436,7 +434,7 @@ Requerimiento relacionado:
 Reglas:
 - Registrar acciones criticas: creacion, actualizacion, inactivacion, acceso a expediente y cambio de estado.
 - Registrar actor, rol, accion, entidad, resultado, detalle, antes, despues, IP, agente y codigo de solicitud.
-- La auditoria debe ser consultable por admin/soporte autorizado.
+- La auditoria debe ser consultable por admin autorizado.
 - La auditoria no debe modificarse desde el frontend.
 
 ## 15. Reglas transversales
@@ -450,7 +448,7 @@ Reglas:
 - El administrador no debe reemplazar el flujo operativo; debe configurar, auditar y supervisar.
 
 ## 15.1 Matriz de permisos funcionales
-| Funcionalidad | Victima | Recepcionista | Psicologo | Defensor | Soporte | Admin |
+| Funcionalidad | Victima | Recepcionista | Psicologo | Defensor | Admin |
 |---|---:|---:|---:|---:|---:|---:|
 | Iniciar sesion | Si | Si | Si | Si | Si | Si |
 | Consultar panel por rol | Si | Si | Si | Si | Si | Si |
@@ -473,7 +471,6 @@ Reglas:
 | Consultar auditoria | No | No | No | No | Si | Si |
 
 Nota de coherencia de permisos:
-- `SOPORTE` consulta trazabilidad, auditoria y estado operativo, pero no registra seguimiento profesional de atencion.
 
 ## 15.2 Datos sensibles y visibilidad
 Datos sensibles:

@@ -67,12 +67,12 @@ public class AuthService {
         if (usuarioRepository.existePorCorreo(solicitud.correo())) {
             throw new ExcepcionNegocio("El correo ya se encuentra registrado");
         }
-        configuracionSeguridadService.validarContrasenaSegura(solicitud.password());
+        configuracionSeguridadService.validarContrasenaSegura(solicitud.contrasena());
 
         Usuario usuario = new Usuario();
         usuario.setId(UUID.randomUUID().toString());
         usuario.setCorreo(solicitud.correo().trim().toLowerCase());
-        usuario.setContrasenaHash(passwordEncoder.encode(solicitud.password()));
+        usuario.setContrasenaHash(passwordEncoder.encode(solicitud.contrasena()));
         usuario.setNombres(solicitud.nombre().trim());
         usuario.setApellidos("N/A");
         usuario.setDni(generarDniTemporalUnico());
@@ -98,7 +98,7 @@ public class AuthService {
             throw new ExcepcionNegocio("El usuario no se encuentra habilitado");
         }
 
-        boolean contrasenaValida = passwordEncoder.matches(solicitud.password(), usuario.getContrasenaHash());
+        boolean contrasenaValida = passwordEncoder.matches(solicitud.contrasena(), usuario.getContrasenaHash());
         if (!contrasenaValida) {
             auditarEvento("LOGIN_FALLIDO", usuario, ResultadoAuditoria.ERROR, "Credenciales invalidas", Map.of("correo", usuario.getCorreo()));
             throw new ExcepcionNegocio("Credenciales invalidas");

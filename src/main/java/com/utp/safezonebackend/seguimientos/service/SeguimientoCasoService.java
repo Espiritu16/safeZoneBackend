@@ -1,7 +1,7 @@
 package com.utp.safezonebackend.seguimientos.service;
 
-import com.utp.safezonebackend.seguimientos.dto.request.CreateSeguimientoCasoRequest;
-import com.utp.safezonebackend.seguimientos.dto.request.UpdateSeguimientoCasoRequest;
+import com.utp.safezonebackend.seguimientos.dto.request.CrearSeguimientoCasoRequest;
+import com.utp.safezonebackend.seguimientos.dto.request.ActualizarSeguimientoCasoRequest;
 import com.utp.safezonebackend.seguimientos.dto.response.SeguimientoCasoResponse;
 import com.utp.safezonebackend.seguimientos.mapper.SeguimientoCasoMapper;
 import com.utp.safezonebackend.seguimientos.repository.SeguimientoCasoRepository;
@@ -27,11 +27,11 @@ public class SeguimientoCasoService {
         throw new UnsupportedOperationException("Pendiente de implementar");
     }
 
-    public SeguimientoCasoResponse create(CreateSeguimientoCasoRequest request) {
+    public SeguimientoCasoResponse create(CrearSeguimientoCasoRequest request) {
         throw new UnsupportedOperationException("Pendiente de implementar");
     }
 
-    public SeguimientoCasoResponse update(String id, UpdateSeguimientoCasoRequest request) {
+    public SeguimientoCasoResponse update(String id, ActualizarSeguimientoCasoRequest request) {
         throw new UnsupportedOperationException("Pendiente de implementar");
     }
 

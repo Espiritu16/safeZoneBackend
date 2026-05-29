@@ -1,7 +1,7 @@
 package com.utp.safezonebackend.asignaciones.controller;
 
-import com.utp.safezonebackend.asignaciones.dto.request.CreateAsignacionCasoRequest;
-import com.utp.safezonebackend.asignaciones.dto.request.UpdateAsignacionCasoRequest;
+import com.utp.safezonebackend.asignaciones.dto.request.CrearAsignacionCasoRequest;
+import com.utp.safezonebackend.asignaciones.dto.request.ActualizarAsignacionCasoRequest;
 import com.utp.safezonebackend.asignaciones.dto.response.AsignacionCasoResponse;
 import com.utp.safezonebackend.asignaciones.service.AsignacionCasoService;
 import java.util.List;
@@ -58,7 +58,7 @@ public class AsignacionCasoController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @PostMapping
-    public ResponseEntity<AsignacionCasoResponse> create(@RequestBody CreateAsignacionCasoRequest request) {
+    public ResponseEntity crear(@RequestBody CrearAsignacionCasoRequest request) {
         return ResponseEntity.ok(service.create(request));
     }
 
@@ -70,7 +70,7 @@ public class AsignacionCasoController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @PutMapping("/{id}/inactivar")
-    public ResponseEntity<AsignacionCasoResponse> update(@PathVariable String id, @RequestBody UpdateAsignacionCasoRequest request) {
+    public ResponseEntity actualizar(@PathVariable String id, @RequestBody ActualizarAsignacionCasoRequest request) {
         return ResponseEntity.ok(service.update(id, request));
     }
 

@@ -1,7 +1,7 @@
 package com.utp.safezonebackend.usuarios.controller;
 
-import com.utp.safezonebackend.usuarios.dto.request.CreateUsuarioRequest;
-import com.utp.safezonebackend.usuarios.dto.request.UpdateUsuarioRequest;
+import com.utp.safezonebackend.usuarios.dto.request.CrearUsuarioRequest;
+import com.utp.safezonebackend.usuarios.dto.request.ActualizarUsuarioRequest;
 import com.utp.safezonebackend.usuarios.dto.response.UsuarioResponse;
 import com.utp.safezonebackend.usuarios.service.UsuarioService;
 import jakarta.validation.Valid;
@@ -59,7 +59,7 @@ public class UsuarioController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @PostMapping
-    public ResponseEntity<UsuarioResponse> create(@Valid @RequestBody CreateUsuarioRequest request) {
+    public ResponseEntity crear(@Valid @RequestBody CrearUsuarioRequest request) {
         return ResponseEntity.ok(service.create(request));
     }
 
@@ -71,7 +71,7 @@ public class UsuarioController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @PutMapping("/{id}")
-    public ResponseEntity<UsuarioResponse> update(@PathVariable String id, @Valid @RequestBody UpdateUsuarioRequest request) {
+    public ResponseEntity actualizar(@PathVariable String id, @Valid @RequestBody ActualizarUsuarioRequest request) {
         return ResponseEntity.ok(service.update(id, request));
     }
 

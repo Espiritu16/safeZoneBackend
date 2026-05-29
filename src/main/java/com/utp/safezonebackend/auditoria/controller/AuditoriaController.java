@@ -1,7 +1,7 @@
 package com.utp.safezonebackend.auditoria.controller;
 
-import com.utp.safezonebackend.auditoria.dto.request.CreateAuditoriaRequest;
-import com.utp.safezonebackend.auditoria.dto.request.UpdateAuditoriaRequest;
+import com.utp.safezonebackend.auditoria.dto.request.CrearAuditoriaRequest;
+import com.utp.safezonebackend.auditoria.dto.request.ActualizarAuditoriaRequest;
 import com.utp.safezonebackend.auditoria.dto.response.AuditoriaResponse;
 import com.utp.safezonebackend.auditoria.service.AuditoriaService;
 import java.util.List;
@@ -58,7 +58,7 @@ public class AuditoriaController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @PostMapping
-    public ResponseEntity<AuditoriaResponse> create(@RequestBody CreateAuditoriaRequest request) {
+    public ResponseEntity crear(@RequestBody CrearAuditoriaRequest request) {
         return ResponseEntity.ok(service.create(request));
     }
 
@@ -70,7 +70,7 @@ public class AuditoriaController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @PutMapping("/{id}/inactivar")
-    public ResponseEntity<AuditoriaResponse> update(@PathVariable String id, @RequestBody UpdateAuditoriaRequest request) {
+    public ResponseEntity actualizar(@PathVariable String id, @RequestBody ActualizarAuditoriaRequest request) {
         return ResponseEntity.ok(service.update(id, request));
     }
 

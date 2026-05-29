@@ -1,6 +1,7 @@
 package com.utp.safezonebackend.victimas.service;
 
 import com.utp.safezonebackend.shared.exception.RecursoNoEncontradoException;
+import com.utp.safezonebackend.usuarios.repository.UsuarioRepository;
 import com.utp.safezonebackend.victimas.dto.response.VictimaHistorialResponse;
 import com.utp.safezonebackend.victimas.dto.response.VictimaHistorialResponse.HistorialItem;
 import com.utp.safezonebackend.victimas.entity.VictimaAlias;
@@ -26,13 +27,23 @@ public class VictimaHistorialService {
     private EntityManager entityManager;
 
     private final VictimaAliasRepository victimaAliasRepository;
+    private final UsuarioRepository usuarioRepository;
 
-    public VictimaHistorialService(VictimaAliasRepository victimaAliasRepository) {
+    public VictimaHistorialService(VictimaAliasRepository victimaAliasRepository, UsuarioRepository usuarioRepository) {
         this.victimaAliasRepository = victimaAliasRepository;
+        this.usuarioRepository = usuarioRepository;
+    }
+
+    @Transactional(readOnly = true)
+    public VictimaHistorialResponse obtenerHistorialPorVictima(String victimaId) {
+        return obtenerPorVictimaId(victimaId);
     }
 
     @Transactional(readOnly = true)
     public VictimaHistorialResponse obtenerPorVictimaId(String victimaId) {
+        if (!usuarioRepository.existsById(victimaId)) {
+            throw new RecursoNoEncontradoException("Victima no encontrada con ID: " + victimaId);
+        }
         String aliasActivo = obtenerAliasActivo(victimaId);
         List<HistorialItem> denuncias = obtenerDenuncias(victimaId);
         List<HistorialItem> citas = obtenerCitas(victimaId);
