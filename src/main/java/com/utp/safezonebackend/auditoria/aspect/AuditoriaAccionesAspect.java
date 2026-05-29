@@ -59,12 +59,13 @@ public class AuditoriaAccionesAspect {
         try {
             Object resultado = joinPoint.proceed();
             Map<String, Object> despues = construirResultado(resultado);
+            String entidadIdFinal = resolverEntidadId(entidadId, resultado, requestId);
             auditoriaService.registrarAccion(new RegistroAuditoriaInterna(
                     entidadTipo,
                     actor == null ? null : actor.getId(),
                     actor == null ? null : actor.getRol(),
                     accion,
-                    entidadId,
+                    entidadIdFinal,
                     ResultadoAuditoria.OK,
                     "Operacion ejecutada correctamente",
                     antes,
@@ -83,7 +84,7 @@ public class AuditoriaAccionesAspect {
                     actor == null ? null : actor.getId(),
                     actor == null ? null : actor.getRol(),
                     accion,
-                    entidadId,
+                    entidadId == null ? requestId : entidadId,
                     ResultadoAuditoria.ERROR,
                     "Operacion fallida",
                     antes,
@@ -152,6 +153,40 @@ public class AuditoriaAccionesAspect {
             return partes[3];
         }
         return null;
+    }
+
+    private String resolverEntidadId(String entidadId, Object resultado, String requestId) {
+        if (entidadId != null && !entidadId.isBlank()) {
+            return entidadId;
+        }
+        String idResultado = extraerIdDesdeResultado(resultado);
+        if (idResultado != null && !idResultado.isBlank()) {
+            return idResultado;
+        }
+        return requestId;
+    }
+
+    private String extraerIdDesdeResultado(Object resultado) {
+        Object cuerpo = resultado;
+        if (resultado instanceof ResponseEntity<?> responseEntity) {
+            cuerpo = responseEntity.getBody();
+        }
+        if (cuerpo == null) {
+            return null;
+        }
+        Object id = invocarMetodoId(cuerpo, "id");
+        if (id == null) {
+            id = invocarMetodoId(cuerpo, "getId");
+        }
+        return id == null ? null : id.toString();
+    }
+
+    private Object invocarMetodoId(Object cuerpo, String metodo) {
+        try {
+            return cuerpo.getClass().getMethod(metodo).invoke(cuerpo);
+        } catch (ReflectiveOperationException ex) {
+            return null;
+        }
     }
 
     private Usuario resolverActorActual() {
