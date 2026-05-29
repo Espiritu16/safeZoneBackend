@@ -42,11 +42,14 @@ public class VictimaAliasService {
         Usuario victima = usuarioRepository.findById(request.getVictimaId())
                 .orElseThrow(() -> new RecursoNoEncontradoException("Víctima no encontrada"));
         String aliasGenerado = "VIC-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        OffsetDateTime ahora = OffsetDateTime.now();
         VictimaAlias alias = new VictimaAlias();
+        alias.setId(UUID.randomUUID().toString());
         alias.setAliasCodigo(aliasGenerado);
         alias.setVictima(victima);
         alias.setCreadoPor(request.getCreadoPor());
-        alias.setFechaAsignacion(OffsetDateTime.now());
+        alias.setFechaAsignacion(ahora);
+        alias.setFechaActualizacion(ahora);
         alias.setFechaFin(request.getFechaFin());
         alias.setActivo(true);
         VictimaAlias guardado = repository.save(alias);
