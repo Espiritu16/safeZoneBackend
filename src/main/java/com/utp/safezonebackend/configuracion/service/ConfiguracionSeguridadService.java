@@ -3,6 +3,7 @@ package com.utp.safezonebackend.configuracion.service;
 import com.utp.safezonebackend.configuracion.entity.ConfiguracionSistema;
 import com.utp.safezonebackend.configuracion.repository.ConfiguracionSistemaRepository;
 import com.utp.safezonebackend.shared.exception.ExcepcionNegocio;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +15,9 @@ public class ConfiguracionSeguridadService {
     public static final String CLAVE_PASSWORD_MIN_LONGITUD = "SEGURIDAD_PASSWORD_MIN_LONGITUD";
     public static final String CLAVE_RECUPERACION_MAX_INTENTOS = "SEGURIDAD_RECUPERACION_MAX_INTENTOS";
     public static final String CLAVE_RECUPERACION_EXPIRACION_MINUTOS = "SEGURIDAD_RECUPERACION_EXPIRACION_MINUTOS";
+    public static final String CLAVE_RIESGO_BAJO_MAXIMO = "SEGURIDAD_RIESGO_BAJO_MAXIMO";
+    public static final String CLAVE_RIESGO_MEDIO_MAXIMO = "SEGURIDAD_RIESGO_MEDIO_MAXIMO";
+    public static final String CLAVE_RIESGO_ALTO_MAXIMO = "SEGURIDAD_RIESGO_ALTO_MAXIMO";
 
     private final ConfiguracionSistemaRepository repository;
     private final long jwtExpiracionMinutosDefault;
@@ -47,6 +51,14 @@ public class ConfiguracionSeguridadService {
 
     public int obtenerRecuperacionExpiracionMinutos() {
         return obtenerEntero(CLAVE_RECUPERACION_EXPIRACION_MINUTOS, 15);
+    }
+
+    public Map<String, Integer> obtenerCriteriosClasificacionRiesgo() {
+        return Map.of(
+                "bajoMaximo", obtenerEntero(CLAVE_RIESGO_BAJO_MAXIMO, 3),
+                "medioMaximo", obtenerEntero(CLAVE_RIESGO_MEDIO_MAXIMO, 6),
+                "altoMaximo", obtenerEntero(CLAVE_RIESGO_ALTO_MAXIMO, 9)
+        );
     }
 
     public void validarContrasenaSegura(String contrasena) {

@@ -3,9 +3,11 @@ package com.utp.safezonebackend.configuracion.controller;
 import com.utp.safezonebackend.configuracion.dto.request.CreateConfiguracionSistemaRequest;
 import com.utp.safezonebackend.configuracion.dto.request.UpdateConfiguracionSistemaRequest;
 import com.utp.safezonebackend.configuracion.dto.response.ConfiguracionSistemaResponse;
+import com.utp.safezonebackend.configuracion.service.ConfiguracionSeguridadService;
 import com.utp.safezonebackend.configuracion.service.ConfiguracionSistemaService;
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,9 +28,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 public class ConfiguracionSistemaController {
 
     private final ConfiguracionSistemaService service;
+    private final ConfiguracionSeguridadService seguridadService;
 
-    public ConfiguracionSistemaController(ConfiguracionSistemaService service) {
+    public ConfiguracionSistemaController(ConfiguracionSistemaService service, ConfiguracionSeguridadService seguridadService) {
         this.service = service;
+        this.seguridadService = seguridadService;
     }
 
     @Operation(summary = "Listar configuraciones del sistema")
@@ -39,6 +43,12 @@ public class ConfiguracionSistemaController {
     @GetMapping
     public ResponseEntity<List<ConfiguracionSistemaResponse>> findAll() {
         return ResponseEntity.ok(service.findAll());
+    }
+
+    @Operation(summary = "Obtener criterios de clasificacion de riesgo")
+    @GetMapping("/seguridad/criterios-riesgo")
+    public ResponseEntity<Map<String, Integer>> obtenerCriteriosRiesgo() {
+        return ResponseEntity.ok(seguridadService.obtenerCriteriosClasificacionRiesgo());
     }
 
     @Operation(summary = "Obtener configuracion del sistema por ID")
