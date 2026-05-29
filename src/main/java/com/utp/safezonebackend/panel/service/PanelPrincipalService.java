@@ -58,28 +58,28 @@ public class PanelPrincipalService {
         RolUsuario rol = usuario.getRol();
         return switch (rol) {
             case ADMIN -> List.of(
-                    indicador("usuarios_activos", "Usuarios activos", contar("SELECT COUNT(*) FROM usuarios WHERE activo = 1")),
-                    indicador("casos_abiertos", "Casos abiertos", contar("SELECT COUNT(*) FROM casos WHERE eliminado = 0 AND estado <> 'CERRADO'")),
-                    indicador("denuncias_registradas", "Denuncias registradas", contar("SELECT COUNT(*) FROM denuncias WHERE eliminado = 0")),
+                    indicador("usuarios_activos", "Usuarios activos", contar("SELECT COUNT(*) FROM usuario WHERE activo = 1")),
+                    indicador("casos_abiertos", "Casos abiertos", contar("SELECT COUNT(*) FROM caso WHERE activo = 1 AND estado <> 'CERRADO'")),
+                    indicador("denuncias_registradas", "Denuncias registradas", contar("SELECT COUNT(*) FROM denuncia WHERE activo = 1")),
                     indicador("eventos_auditoria", "Eventos de auditoria", contar("SELECT COUNT(*) FROM auditoria"))
             );
             case RECEPCIONISTA -> List.of(
-                    indicador("predenuncias_pendientes", "Predenuncias pendientes", contar("SELECT COUNT(*) FROM pre_denuncias WHERE activo = 1 AND estado = 'PENDIENTE'")),
-                    indicador("predenuncias_en_contacto", "Predenuncias en contacto", contar("SELECT COUNT(*) FROM pre_denuncias WHERE activo = 1 AND estado = 'EN_CONTACTO'")),
-                    indicador("denuncias_formalizadas", "Denuncias formalizadas", contar("SELECT COUNT(*) FROM denuncias WHERE eliminado = 0")),
-                    indicador("casos_abiertos", "Casos abiertos", contar("SELECT COUNT(*) FROM casos WHERE eliminado = 0 AND estado <> 'CERRADO'"))
+                    indicador("predenuncias_pendientes", "Predenuncias pendientes", contar("SELECT COUNT(*) FROM pre_denuncia WHERE activo = 1 AND estado = 'PENDIENTE'")),
+                    indicador("predenuncias_en_contacto", "Predenuncias en contacto", contar("SELECT COUNT(*) FROM pre_denuncia WHERE activo = 1 AND estado = 'EN_CONTACTO'")),
+                    indicador("denuncias_formalizadas", "Denuncias formalizadas", contar("SELECT COUNT(*) FROM denuncia WHERE activo = 1")),
+                    indicador("casos_abiertos", "Casos abiertos", contar("SELECT COUNT(*) FROM caso WHERE activo = 1 AND estado <> 'CERRADO'"))
             );
             case PSICOLOGO, DEFENSOR -> List.of(
-                    indicador("casos_asignados", "Casos asignados", contar("SELECT COUNT(*) FROM asignaciones_caso WHERE activo = 1 AND eliminado = 0 AND profesional_id = :usuarioId", usuario.getId())),
-                    indicador("seguimientos_registrados", "Seguimientos registrados", contar("SELECT COUNT(*) FROM seguimientos_caso WHERE eliminado = 0 AND autor_id = :usuarioId", usuario.getId())),
-                    indicador("citas_programadas", "Citas programadas", contar("SELECT COUNT(*) FROM citas WHERE eliminado = 0 AND especialista_id = :usuarioId AND estado IN ('PROGRAMADA','CONFIRMADA')", usuario.getId())),
-                    indicador("evidencias_subidas", "Evidencias subidas", contar("SELECT COUNT(*) FROM evidencias WHERE eliminado = 0 AND subido_por = :usuarioId", usuario.getId()))
+                    indicador("casos_asignados", "Casos asignados", contar("SELECT COUNT(*) FROM asignacion_caso WHERE activo = 1 AND profesional_id = :usuarioId", usuario.getId())),
+                    indicador("seguimientos_registrados", "Seguimientos registrados", contar("SELECT COUNT(*) FROM seguimiento_caso WHERE activo = 1 AND autor_id = :usuarioId", usuario.getId())),
+                    indicador("citas_programadas", "Citas programadas", contar("SELECT COUNT(*) FROM cita WHERE activo = 1 AND especialista_id = :usuarioId AND estado IN ('PROGRAMADA','CONFIRMADA')", usuario.getId())),
+                    indicador("evidencias_subidas", "Evidencias subidas", contar("SELECT COUNT(*) FROM evidencia WHERE activo = 1 AND subido_por = :usuarioId", usuario.getId()))
             );
             case VICTIMA -> List.of(
-                    indicador("mis_predenuncias", "Mis predenuncias", contar("SELECT COUNT(*) FROM pre_denuncias WHERE activo = 1 AND victima_id = :usuarioId", usuario.getId())),
-                    indicador("mis_denuncias", "Mis denuncias", contar("SELECT COUNT(*) FROM denuncias WHERE eliminado = 0 AND victima_id = :usuarioId", usuario.getId())),
-                    indicador("mis_casos", "Mis casos", contar("SELECT COUNT(*) FROM casos WHERE eliminado = 0 AND victima_id = :usuarioId", usuario.getId())),
-                    indicador("mis_citas", "Mis citas", contar("SELECT COUNT(*) FROM citas WHERE eliminado = 0 AND victima_id = :usuarioId", usuario.getId()))
+                    indicador("mis_predenuncias", "Mis predenuncias", contar("SELECT COUNT(*) FROM pre_denuncia WHERE activo = 1 AND victima_id = :usuarioId", usuario.getId())),
+                    indicador("mis_denuncias", "Mis denuncias", contar("SELECT COUNT(*) FROM denuncia WHERE activo = 1 AND victima_id = :usuarioId", usuario.getId())),
+                    indicador("mis_casos", "Mis casos", contar("SELECT COUNT(*) FROM caso WHERE activo = 1 AND victima_id = :usuarioId", usuario.getId())),
+                    indicador("mis_citas", "Mis citas", contar("SELECT COUNT(*) FROM cita WHERE activo = 1 AND victima_id = :usuarioId", usuario.getId()))
             );
         };
     }
@@ -110,7 +110,7 @@ public class PanelPrincipalService {
     }
 
     private List<Alerta> alertas(RolUsuario rol) {
-        if (rol == RolUsuario.RECEPCIONISTA && contar("SELECT COUNT(*) FROM pre_denuncias WHERE activo = 1 AND estado = 'PENDIENTE'") > 0) {
+        if (rol == RolUsuario.RECEPCIONISTA && contar("SELECT COUNT(*) FROM pre_denuncia WHERE activo = 1 AND estado = 'PENDIENTE'") > 0) {
             return List.of(new Alerta("PREDENUNCIAS", "Hay predenuncias pendientes de contacto.", "MEDIA"));
         }
         if (rol == RolUsuario.ADMIN && contar("SELECT COUNT(*) FROM auditoria WHERE resultado = 'ERROR'") > 0) {

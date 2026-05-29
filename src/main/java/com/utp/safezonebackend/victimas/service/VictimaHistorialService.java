@@ -86,8 +86,8 @@ public class VictimaHistorialService {
         @SuppressWarnings("unchecked")
         List<Object[]> rows = entityManager.createNativeQuery("""
                 SELECT id, caso_id, tipo_violencia, descripcion, nivel_riesgo, fecha_creacion
-                FROM denuncias
-                WHERE victima_id = :victimaId AND eliminado = 0
+                FROM denuncia
+                WHERE victima_id = :victimaId AND activo = 1
                 ORDER BY fecha_creacion DESC
                 """)
                 .setParameter("victimaId", victimaId)
@@ -111,8 +111,8 @@ public class VictimaHistorialService {
         @SuppressWarnings("unchecked")
         List<Object[]> rows = entityManager.createNativeQuery("""
                 SELECT id, caso_id, tipo_cita, estado, observaciones, fecha_inicio
-                FROM citas
-                WHERE victima_id = :victimaId AND eliminado = 0
+                FROM cita
+                WHERE victima_id = :victimaId AND activo = 1
                 ORDER BY fecha_inicio DESC
                 """)
                 .setParameter("victimaId", victimaId)
@@ -136,9 +136,9 @@ public class VictimaHistorialService {
         @SuppressWarnings("unchecked")
         List<Object[]> rows = entityManager.createNativeQuery("""
                 SELECT s.id, s.caso_id, s.tipo_seguimiento, s.contenido, s.proxima_accion, s.fecha_creacion
-                FROM seguimientos_caso s
-                INNER JOIN casos c ON c.id = s.caso_id
-                WHERE c.victima_id = :victimaId AND s.eliminado = 0 AND c.eliminado = 0
+                FROM seguimiento_caso s
+                INNER JOIN caso c ON c.id = s.caso_id
+                WHERE c.victima_id = :victimaId AND s.activo = 1 AND c.activo = 1
                 ORDER BY s.fecha_creacion DESC
                 """)
                 .setParameter("victimaId", victimaId)
@@ -162,10 +162,10 @@ public class VictimaHistorialService {
         @SuppressWarnings("unchecked")
         List<Object[]> rows = entityManager.createNativeQuery("""
                 SELECT DISTINCT e.id, e.caso_id, e.nombre_archivo, e.tipo_mime, e.fecha_creacion, e.denuncia_id
-                FROM evidencias e
-                LEFT JOIN casos c ON c.id = e.caso_id
-                LEFT JOIN denuncias d ON d.id = e.denuncia_id
-                WHERE e.eliminado = 0
+                FROM evidencia e
+                LEFT JOIN caso c ON c.id = e.caso_id
+                LEFT JOIN denuncia d ON d.id = e.denuncia_id
+                WHERE e.activo = 1
                   AND (c.victima_id = :victimaId OR d.victima_id = :victimaId)
                 ORDER BY e.fecha_creacion DESC
                 """)
