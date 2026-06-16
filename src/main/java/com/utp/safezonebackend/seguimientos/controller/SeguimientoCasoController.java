@@ -4,6 +4,7 @@ import com.utp.safezonebackend.seguimientos.dto.request.CrearSeguimientoCasoRequ
 import com.utp.safezonebackend.seguimientos.dto.request.ActualizarSeguimientoCasoRequest;
 import com.utp.safezonebackend.seguimientos.dto.response.SeguimientoCasoResponse;
 import com.utp.safezonebackend.seguimientos.service.SeguimientoCasoService;
+import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -36,8 +38,11 @@ public class SeguimientoCasoController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @GetMapping
-    public ResponseEntity<List<SeguimientoCasoResponse>> findAll() {
-        return ResponseEntity.ok(service.findAll());
+    public ResponseEntity<List<SeguimientoCasoResponse>> findAll(
+            @RequestParam(required = false) String casoId,
+            @RequestParam(required = false) String autorId
+    ) {
+        return ResponseEntity.ok(service.buscar(casoId, autorId));
     }
 
     @Operation(summary = "Obtener seguimiento de caso por ID")
@@ -46,7 +51,7 @@ public class SeguimientoCasoController {
         @ApiResponse(responseCode = "404", description = "Recurso no encontrado"),
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
-    @GetMapping("/{id}/inactivar")
+    @GetMapping("/{id}")
     public ResponseEntity<SeguimientoCasoResponse> findById(@PathVariable String id) {
         return ResponseEntity.ok(service.findById(id));
     }
@@ -58,7 +63,7 @@ public class SeguimientoCasoController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @PostMapping
-    public ResponseEntity crear(@RequestBody CrearSeguimientoCasoRequest request) {
+    public ResponseEntity<SeguimientoCasoResponse> crear(@Valid @RequestBody CrearSeguimientoCasoRequest request) {
         return ResponseEntity.ok(service.create(request));
     }
 
@@ -69,8 +74,8 @@ public class SeguimientoCasoController {
         @ApiResponse(responseCode = "404", description = "Recurso no encontrado"),
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
-    @PutMapping("/{id}/inactivar")
-    public ResponseEntity actualizar(@PathVariable String id, @RequestBody ActualizarSeguimientoCasoRequest request) {
+    @PutMapping("/{id}")
+    public ResponseEntity<SeguimientoCasoResponse> actualizar(@PathVariable String id, @Valid @RequestBody ActualizarSeguimientoCasoRequest request) {
         return ResponseEntity.ok(service.update(id, request));
     }
 
