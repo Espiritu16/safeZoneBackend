@@ -43,7 +43,7 @@ public class Evidencia {
     @Column(name = "hash_sha256")
     private String hashSha256;
 
-    private boolean eliminado;
+    private boolean activo;
 
     @Column(name = "fecha_creacion")
     private OffsetDateTime fechaCreacion;
@@ -51,8 +51,8 @@ public class Evidencia {
     @Column(name = "fecha_actualizacion")
     private OffsetDateTime fechaActualizacion;
 
-    @Column(name = "fecha_eliminacion")
-    private OffsetDateTime fechaEliminacion;
+    @Column(name = "fecha_inactivacion")
+    private OffsetDateTime fechaInactivacion;
 
     @Column(name = "creado_por")
     private String creadoPor;
@@ -60,6 +60,6 @@ public class Evidencia {
     @Column(name = "actualizado_por")
     private String actualizadoPor;
 
-    @Column(name = "eliminado_por")
-    private String eliminadoPor;
+    @Column(name = "inactivado_por")
+    private String inactivadoPor;
 }

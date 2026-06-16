@@ -3,7 +3,9 @@ package com.utp.safezonebackend.denuncias.controller;
 import com.utp.safezonebackend.denuncias.dto.request.CrearDenunciaRequest;
 import com.utp.safezonebackend.denuncias.dto.request.ActualizarDenunciaRequest;
 import com.utp.safezonebackend.denuncias.dto.response.DenunciaResponse;
+import com.utp.safezonebackend.denuncias.enums.NivelRiesgo;
 import com.utp.safezonebackend.denuncias.service.DenunciaService;
+import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -36,8 +39,14 @@ public class DenunciaController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @GetMapping
-    public ResponseEntity<List<DenunciaResponse>> findAll() {
-        return ResponseEntity.ok(service.findAll());
+    public ResponseEntity<List<DenunciaResponse>> findAll(
+            @RequestParam(required = false) String victimaId,
+            @RequestParam(required = false) String casoId,
+            @RequestParam(required = false) NivelRiesgo nivelRiesgo,
+            @RequestParam(required = false) String distrito,
+            @RequestParam(required = false) String tipoViolencia
+    ) {
+        return ResponseEntity.ok(service.buscar(victimaId, casoId, nivelRiesgo, distrito, tipoViolencia));
     }
 
     @Operation(summary = "Obtener denuncia por ID")
@@ -46,7 +55,7 @@ public class DenunciaController {
         @ApiResponse(responseCode = "404", description = "Recurso no encontrado"),
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
-    @GetMapping("/{id}/inactivar")
+    @GetMapping("/{id}")
     public ResponseEntity<DenunciaResponse> findById(@PathVariable String id) {
         return ResponseEntity.ok(service.findById(id));
     }
@@ -58,7 +67,7 @@ public class DenunciaController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @PostMapping
-    public ResponseEntity crear(@RequestBody CrearDenunciaRequest request) {
+    public ResponseEntity<DenunciaResponse> crear(@Valid @RequestBody CrearDenunciaRequest request) {
         return ResponseEntity.ok(service.create(request));
     }
 
@@ -69,8 +78,8 @@ public class DenunciaController {
         @ApiResponse(responseCode = "404", description = "Recurso no encontrado"),
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
-    @PutMapping("/{id}/inactivar")
-    public ResponseEntity actualizar(@PathVariable String id, @RequestBody ActualizarDenunciaRequest request) {
+    @PutMapping("/{id}")
+    public ResponseEntity<DenunciaResponse> actualizar(@PathVariable String id, @Valid @RequestBody ActualizarDenunciaRequest request) {
         return ResponseEntity.ok(service.update(id, request));
     }
 

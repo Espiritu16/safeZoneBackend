@@ -6,5 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface CitaRepository extends JpaRepository<Cita, String> {
-    List<Cita> findByVictimaIdAndEliminadoFalse(String victimaId);
+    List<Cita> findByVictimaIdAndActivoTrue(String victimaId);
 }
