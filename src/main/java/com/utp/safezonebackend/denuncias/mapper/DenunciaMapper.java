@@ -8,6 +8,24 @@ import org.springframework.stereotype.Component;
 public class DenunciaMapper {
 
     public DenunciaResponse toResponse(Denuncia entity) {
-        return new DenunciaResponse();
+        if (entity == null) {
+            return null;
+        }
+        return new DenunciaResponse(
+                entity.getId(),
+                entity.getCasoId(),
+                entity.getVictimaId(),
+                entity.getDescripcion(),
+                entity.getTipoViolencia(),
+                entity.getFechaIncidente(),
+                entity.getDistrito(),
+                entity.getDireccionReferencia(),
+                entity.getNivelRiesgo(),
+                entity.isAnonima(),
+                entity.getAdjuntos(),
+                entity.isActivo(),
+                entity.getFechaCreacion(),
+                entity.getFechaActualizacion()
+        );
     }
 }
