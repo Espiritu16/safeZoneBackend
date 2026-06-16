@@ -30,7 +30,7 @@ public class Caso {
 
     private String distrito;
 
-    private boolean eliminado;
+    private boolean activo;
 
     @Column(name = "fecha_creacion")
     private OffsetDateTime fechaCreacion;
@@ -47,11 +47,11 @@ public class Caso {
     @Column(name = "actualizado_por")
     private String actualizadoPor;
 
-    @Column(name = "eliminado_por")
-    private String eliminadoPor;
+    @Column(name = "inactivado_por")
+    private String inactivadoPor;
 
-    @Column(name = "fecha_eliminacion")
-    private OffsetDateTime fechaEliminacion;
+    @Column(name = "fecha_inactivacion")
+    private OffsetDateTime fechaInactivacion;
 
     public Caso() {
     }
@@ -104,12 +104,12 @@ public class Caso {
         this.distrito = distrito;
     }
 
-    public boolean isEliminado() {
-        return eliminado;
+    public boolean isActivo() {
+        return activo;
     }
 
-    public void setEliminado(boolean eliminado) {
-        this.eliminado = eliminado;
+    public void setActivo(boolean activo) {
+        this.activo = activo;
     }
 
     public OffsetDateTime getFechaCreacion() {
@@ -152,19 +152,19 @@ public class Caso {
         this.actualizadoPor = actualizadoPor;
     }
 
-    public String getEliminadoPor() {
-        return eliminadoPor;
+    public String getInactivadoPor() {
+        return inactivadoPor;
     }
 
-    public void setEliminadoPor(String eliminadoPor) {
-        this.eliminadoPor = eliminadoPor;
+    public void setInactivadoPor(String inactivadoPor) {
+        this.inactivadoPor = inactivadoPor;
     }
 
-    public OffsetDateTime getFechaEliminacion() {
-        return fechaEliminacion;
+    public OffsetDateTime getFechaInactivacion() {
+        return fechaInactivacion;
     }
 
-    public void setFechaEliminacion(OffsetDateTime fechaEliminacion) {
-        this.fechaEliminacion = fechaEliminacion;
+    public void setFechaInactivacion(OffsetDateTime fechaInactivacion) {
+        this.fechaInactivacion = fechaInactivacion;
     }
 }

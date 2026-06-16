@@ -28,8 +28,6 @@ public class AsignacionCaso {
 
     private boolean activo;
 
-    private boolean eliminado;
-
     @Column(name = "fecha_asignacion")
     private OffsetDateTime fechaAsignacion;
 
@@ -50,12 +48,6 @@ public class AsignacionCaso {
 
     @Column(name = "fecha_inactivacion")
     private OffsetDateTime fechaInactivacion;
-
-    @Column(name = "eliminado_por")
-    private String eliminadoPor;
-
-    @Column(name = "fecha_eliminacion")
-    private OffsetDateTime fechaEliminacion;
 
     public AsignacionCaso() {
     }
@@ -98,14 +90,6 @@ public class AsignacionCaso {
 
     public void setActivo(boolean activo) {
         this.activo = activo;
-    }
-
-    public boolean isEliminado() {
-        return eliminado;
-    }
-
-    public void setEliminado(boolean eliminado) {
-        this.eliminado = eliminado;
     }
 
     public OffsetDateTime getFechaAsignacion() {
@@ -164,19 +148,4 @@ public class AsignacionCaso {
         this.fechaInactivacion = fechaInactivacion;
     }
 
-    public String getEliminadoPor() {
-        return eliminadoPor;
-    }
-
-    public void setEliminadoPor(String eliminadoPor) {
-        this.eliminadoPor = eliminadoPor;
-    }
-
-    public OffsetDateTime getFechaEliminacion() {
-        return fechaEliminacion;
-    }
-
-    public void setFechaEliminacion(OffsetDateTime fechaEliminacion) {
-        this.fechaEliminacion = fechaEliminacion;
-    }
 }

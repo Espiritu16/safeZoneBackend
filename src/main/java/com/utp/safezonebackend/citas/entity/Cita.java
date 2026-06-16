@@ -47,7 +47,7 @@ public class Cita {
 
     private String observaciones;
 
-    private boolean eliminado;
+    private boolean activo;
 
     @Column(name = "fecha_creacion")
     private OffsetDateTime fechaCreacion;
@@ -55,8 +55,8 @@ public class Cita {
     @Column(name = "fecha_actualizacion")
     private OffsetDateTime fechaActualizacion;
 
-    @Column(name = "fecha_eliminacion")
-    private OffsetDateTime fechaEliminacion;
+    @Column(name = "fecha_inactivacion")
+    private OffsetDateTime fechaInactivacion;
 
     @Column(name = "creado_por")
     private String creadoPor;
@@ -64,6 +64,6 @@ public class Cita {
     @Column(name = "actualizado_por")
     private String actualizadoPor;
 
-    @Column(name = "eliminado_por")
-    private String eliminadoPor;
+    @Column(name = "inactivado_por")
+    private String inactivadoPor;
 }
