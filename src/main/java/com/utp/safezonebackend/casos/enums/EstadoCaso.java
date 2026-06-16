@@ -1,7 +1,10 @@
 package com.utp.safezonebackend.casos.enums;
 
 public enum EstadoCaso {
-    ABIERTO,
-    EN_SEGUIMIENTO,
-    CERRADO
+    REGISTRADO,
+    EN_EVALUACION,
+    EN_ATENCION,
+    DERIVADO,
+    CERRADO,
+    ARCHIVADO
 }

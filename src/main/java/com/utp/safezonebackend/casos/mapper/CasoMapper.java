@@ -8,6 +8,20 @@ import org.springframework.stereotype.Component;
 public class CasoMapper {
 
     public CasoResponse toResponse(Caso entity) {
-        return new CasoResponse();
+        if (entity == null) {
+            return null;
+        }
+        return new CasoResponse(
+                entity.getId(),
+                entity.getVictimaId(),
+                entity.getEstado(),
+                entity.getPrioridad(),
+                entity.getResumen(),
+                entity.getDistrito(),
+                entity.isActivo(),
+                entity.getFechaCreacion(),
+                entity.getFechaCierre(),
+                entity.getFechaActualizacion()
+        );
     }
 }

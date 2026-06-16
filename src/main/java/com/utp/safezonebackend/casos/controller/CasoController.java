@@ -3,7 +3,11 @@ package com.utp.safezonebackend.casos.controller;
 import com.utp.safezonebackend.casos.dto.request.CrearCasoRequest;
 import com.utp.safezonebackend.casos.dto.request.ActualizarCasoRequest;
 import com.utp.safezonebackend.casos.dto.response.CasoResponse;
+import com.utp.safezonebackend.casos.enums.EstadoCaso;
+import com.utp.safezonebackend.casos.enums.PrioridadCaso;
 import com.utp.safezonebackend.casos.service.CasoService;
+import com.utp.safezonebackend.denuncias.enums.NivelRiesgo;
+import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -13,6 +17,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -36,8 +41,14 @@ public class CasoController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @GetMapping
-    public ResponseEntity<List<CasoResponse>> findAll() {
-        return ResponseEntity.ok(service.findAll());
+    public ResponseEntity<List<CasoResponse>> findAll(
+            @RequestParam(required = false) String victimaId,
+            @RequestParam(required = false) String aliasCodigo,
+            @RequestParam(required = false) EstadoCaso estado,
+            @RequestParam(required = false) PrioridadCaso prioridad,
+            @RequestParam(required = false) NivelRiesgo nivelRiesgo
+    ) {
+        return ResponseEntity.ok(service.buscar(victimaId, aliasCodigo, estado, prioridad, nivelRiesgo));
     }
 
     @Operation(summary = "Obtener caso por ID")
@@ -46,7 +57,7 @@ public class CasoController {
         @ApiResponse(responseCode = "404", description = "Recurso no encontrado"),
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
-    @GetMapping("/{id}/inactivar")
+    @GetMapping("/{id}")
     public ResponseEntity<CasoResponse> findById(@PathVariable String id) {
         return ResponseEntity.ok(service.findById(id));
     }
@@ -58,7 +69,7 @@ public class CasoController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @PostMapping
-    public ResponseEntity crear(@RequestBody CrearCasoRequest request) {
+    public ResponseEntity<CasoResponse> crear(@Valid @RequestBody CrearCasoRequest request) {
         return ResponseEntity.ok(service.create(request));
     }
 
@@ -69,8 +80,8 @@ public class CasoController {
         @ApiResponse(responseCode = "404", description = "Recurso no encontrado"),
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
-    @PutMapping("/{id}/inactivar")
-    public ResponseEntity actualizar(@PathVariable String id, @RequestBody ActualizarCasoRequest request) {
+    @PutMapping("/{id}")
+    public ResponseEntity<CasoResponse> actualizar(@PathVariable String id, @Valid @RequestBody ActualizarCasoRequest request) {
         return ResponseEntity.ok(service.update(id, request));
     }
 
