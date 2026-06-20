@@ -59,6 +59,7 @@ public class PreDenunciaService {
     public PreDenunciaResponse registrar(CrearPreDenunciaRequest request) {
         validarContactoSeguro(request.telefonoContacto(), request.correoContacto());
         OffsetDateTime ahora = OffsetDateTime.now();
+        Usuario actor = usuarioAutenticadoOpcional();
         PreDenuncia preDenuncia = new PreDenuncia();
         preDenuncia.setId(UUID.randomUUID().toString());
         preDenuncia.setNombresContacto(limpiar(request.nombresContacto()));
@@ -75,6 +76,11 @@ public class PreDenunciaService {
         preDenuncia.setActivo(true);
         preDenuncia.setFechaCreacion(ahora);
         preDenuncia.setFechaActualizacion(ahora);
+        if (actor != null && actor.getRol() == RolUsuario.VICTIMA) {
+            preDenuncia.setVictimaId(actor.getId());
+            preDenuncia.setCreadoPor(actor.getId());
+            preDenuncia.setAnonima(false);
+        }
         PreDenuncia guardada = repository.save(preDenuncia);
         auditar("REGISTRAR_PREDENUNCIA", guardada, "Predenuncia registrada desde formulario inicial");
         return responder(guardada);
@@ -86,6 +92,17 @@ public class PreDenunciaService {
                 ? repository.findByActivoTrueOrderByFechaCreacionDesc()
                 : repository.findByEstadoAndActivoTrueOrderByFechaCreacionDesc(estado);
         return preDenuncias.stream().map(this::responder).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<PreDenunciaResponse> listarMisRegistros() {
+        Usuario actor = obtenerUsuarioAutenticado();
+        if (actor.getRol() != RolUsuario.VICTIMA) {
+            throw new ExcepcionNegocio("Solo una victima puede consultar sus predenuncias");
+        }
+        return repository.findByVictimaIdAndActivoTrueOrderByFechaCreacionDesc(actor.getId()).stream()
+                .map(this::responder)
+                .toList();
     }
 
     @Transactional(readOnly = true)

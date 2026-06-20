@@ -59,6 +59,8 @@ public class ConfiguracionSeguridad {
                         ).hasRole("ADMIN")
                         .requestMatchers("/api/panel-principal/**")
                         .hasAnyRole("ADMIN", "RECEPCIONISTA", "PSICOLOGO", "DEFENSOR", "VICTIMA")
+                        .requestMatchers(HttpMethod.GET, "/api/predenuncias/mis-registros")
+                        .hasRole("VICTIMA")
                         .requestMatchers("/api/predenuncias/**")
                         .hasAnyRole("ADMIN", "RECEPCIONISTA")
                         .requestMatchers("/api/casos/**")

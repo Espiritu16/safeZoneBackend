@@ -10,5 +10,7 @@ public interface PreDenunciaRepository extends JpaRepository<PreDenuncia, String
 
     List<PreDenuncia> findByEstadoAndActivoTrueOrderByFechaCreacionDesc(EstadoPreDenuncia estado);
 
+    List<PreDenuncia> findByVictimaIdAndActivoTrueOrderByFechaCreacionDesc(String victimaId);
+
     long countByEstadoAndActivoTrue(EstadoPreDenuncia estado);
 }
