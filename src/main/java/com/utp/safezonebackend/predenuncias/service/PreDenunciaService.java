@@ -2,6 +2,9 @@ package com.utp.safezonebackend.predenuncias.service;
 
 import com.utp.safezonebackend.auditoria.dto.request.RegistroAuditoriaInterna;
 import com.utp.safezonebackend.auditoria.service.AuditoriaService;
+import com.utp.safezonebackend.denuncias.dto.request.CrearDenunciaRequest;
+import com.utp.safezonebackend.denuncias.dto.response.DenunciaResponse;
+import com.utp.safezonebackend.denuncias.service.DenunciaService;
 import com.utp.safezonebackend.predenuncias.dto.request.CrearPreDenunciaRequest;
 import com.utp.safezonebackend.predenuncias.dto.request.DescartarPreDenunciaRequest;
 import com.utp.safezonebackend.predenuncias.dto.request.FormalizarPreDenunciaRequest;
@@ -12,6 +15,7 @@ import com.utp.safezonebackend.predenuncias.repository.PreDenunciaRepository;
 import com.utp.safezonebackend.shared.exception.ExcepcionNegocio;
 import com.utp.safezonebackend.shared.exception.RecursoNoEncontradoException;
 import com.utp.safezonebackend.usuarios.entity.Usuario;
+import com.utp.safezonebackend.usuarios.enums.RolUsuario;
 import com.utp.safezonebackend.usuarios.repository.UsuarioRepository;
 import com.utp.safezonebackend.victimas.entity.VictimaAlias;
 import com.utp.safezonebackend.victimas.repository.VictimaAliasRepository;
@@ -21,6 +25,7 @@ import java.util.Map;
 import java.util.UUID;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,23 +36,30 @@ public class PreDenunciaService {
     private final UsuarioRepository usuarioRepository;
     private final VictimaAliasRepository victimaAliasRepository;
     private final AuditoriaService auditoriaService;
+    private final DenunciaService denunciaService;
+    private final PasswordEncoder passwordEncoder;
 
     public PreDenunciaService(
             PreDenunciaRepository repository,
             UsuarioRepository usuarioRepository,
             VictimaAliasRepository victimaAliasRepository,
-            AuditoriaService auditoriaService
+            AuditoriaService auditoriaService,
+            DenunciaService denunciaService,
+            PasswordEncoder passwordEncoder
     ) {
         this.repository = repository;
         this.usuarioRepository = usuarioRepository;
         this.victimaAliasRepository = victimaAliasRepository;
         this.auditoriaService = auditoriaService;
+        this.denunciaService = denunciaService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional
     public PreDenunciaResponse registrar(CrearPreDenunciaRequest request) {
         validarContactoSeguro(request.telefonoContacto(), request.correoContacto());
         OffsetDateTime ahora = OffsetDateTime.now();
+        Usuario actor = usuarioAutenticadoOpcional();
         PreDenuncia preDenuncia = new PreDenuncia();
         preDenuncia.setId(UUID.randomUUID().toString());
         preDenuncia.setNombresContacto(limpiar(request.nombresContacto()));
@@ -64,6 +76,11 @@ public class PreDenunciaService {
         preDenuncia.setActivo(true);
         preDenuncia.setFechaCreacion(ahora);
         preDenuncia.setFechaActualizacion(ahora);
+        if (actor != null && actor.getRol() == RolUsuario.VICTIMA) {
+            preDenuncia.setVictimaId(actor.getId());
+            preDenuncia.setCreadoPor(actor.getId());
+            preDenuncia.setAnonima(false);
+        }
         PreDenuncia guardada = repository.save(preDenuncia);
         auditar("REGISTRAR_PREDENUNCIA", guardada, "Predenuncia registrada desde formulario inicial");
         return responder(guardada);
@@ -75,6 +92,17 @@ public class PreDenunciaService {
                 ? repository.findByActivoTrueOrderByFechaCreacionDesc()
                 : repository.findByEstadoAndActivoTrueOrderByFechaCreacionDesc(estado);
         return preDenuncias.stream().map(this::responder).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<PreDenunciaResponse> listarMisRegistros() {
+        Usuario actor = obtenerUsuarioAutenticado();
+        if (actor.getRol() != RolUsuario.VICTIMA) {
+            throw new ExcepcionNegocio("Solo una victima puede consultar sus predenuncias");
+        }
+        return repository.findByVictimaIdAndActivoTrueOrderByFechaCreacionDesc(actor.getId()).stream()
+                .map(this::responder)
+                .toList();
     }
 
     @Transactional(readOnly = true)
@@ -102,13 +130,16 @@ public class PreDenunciaService {
     public PreDenunciaResponse formalizar(String id, FormalizarPreDenunciaRequest request) {
         PreDenuncia preDenuncia = obtenerActiva(id);
         validarNoDescartada(preDenuncia);
+        validarEnContacto(preDenuncia);
         Usuario actor = obtenerUsuarioAutenticado();
         OffsetDateTime ahora = OffsetDateTime.now();
-        garantizarAliasActivo(request.victimaId(), actor.getId(), ahora);
+        String victimaId = resolverVictimaFormalizacion(preDenuncia, request, actor, ahora);
+        garantizarAliasActivo(victimaId, actor.getId(), ahora);
+        DenunciaFormalizada denuncia = resolverDenunciaFormal(preDenuncia, request, victimaId);
         preDenuncia.setEstado(EstadoPreDenuncia.FORMALIZADA);
-        preDenuncia.setVictimaId(request.victimaId());
-        preDenuncia.setDenunciaId(request.denunciaId());
-        preDenuncia.setCasoId(limpiar(request.casoId()));
+        preDenuncia.setVictimaId(victimaId);
+        preDenuncia.setDenunciaId(denuncia.denunciaId());
+        preDenuncia.setCasoId(denuncia.casoId());
         preDenuncia.setActualizadoPor(actor.getId());
         preDenuncia.setFechaFormalizacion(ahora);
         preDenuncia.setFechaActualizacion(ahora);
@@ -160,6 +191,81 @@ public class PreDenunciaService {
         if (preDenuncia.getEstado() == EstadoPreDenuncia.DESCARTADA) {
             throw new ExcepcionNegocio("No se puede modificar una predenuncia descartada");
         }
+    }
+
+    private void validarEnContacto(PreDenuncia preDenuncia) {
+        if (preDenuncia.getEstado() != EstadoPreDenuncia.EN_CONTACTO) {
+            throw new ExcepcionNegocio("Debe marcar la predenuncia en contacto antes de formalizarla");
+        }
+    }
+
+    private String resolverVictimaFormalizacion(
+            PreDenuncia preDenuncia,
+            FormalizarPreDenunciaRequest request,
+            Usuario actor,
+            OffsetDateTime ahora
+    ) {
+        if (Boolean.TRUE.equals(request.formalizarAnonima())) {
+            return crearVictimaProtegida(preDenuncia, actor, ahora).getId();
+        }
+        if (esBlanco(request.victimaId())) {
+            throw new ExcepcionNegocio("Debe indicar la victima para formalizar la predenuncia");
+        }
+        return request.victimaId().trim();
+    }
+
+    private Usuario crearVictimaProtegida(PreDenuncia preDenuncia, Usuario actor, OffsetDateTime ahora) {
+        String dniTecnico = generarDniTecnicoAlias();
+        Usuario usuario = new Usuario();
+        usuario.setId(UUID.randomUUID().toString());
+        usuario.setCorreo("alias." + dniTecnico.toLowerCase() + "@safezone.local");
+        usuario.setContrasenaHash(passwordEncoder.encode(UUID.randomUUID().toString()));
+        usuario.setNombres("Victima protegida");
+        usuario.setApellidos("Alias anonimo");
+        usuario.setDni(dniTecnico);
+        usuario.setTelefono(limpiar(preDenuncia.getTelefonoContacto()));
+        usuario.setDistrito(limpiar(preDenuncia.getDistrito()));
+        usuario.setRol(RolUsuario.VICTIMA);
+        usuario.setActivo(true);
+        usuario.setCreadoPor(actor.getId());
+        usuario.setFechaCreacion(ahora);
+        usuario.setFechaActualizacion(ahora);
+        return usuarioRepository.save(usuario);
+    }
+
+    private String generarDniTecnicoAlias() {
+        String dni;
+        do {
+            dni = "ALIAS" + UUID.randomUUID().toString().replace("-", "").substring(0, 8).toUpperCase();
+        } while (usuarioRepository.existsByDni(dni));
+        return dni;
+    }
+
+    private DenunciaFormalizada resolverDenunciaFormal(
+            PreDenuncia preDenuncia,
+            FormalizarPreDenunciaRequest request,
+            String victimaId
+    ) {
+        if (!esBlanco(request.denunciaId())) {
+            return new DenunciaFormalizada(limpiar(request.denunciaId()), limpiar(request.casoId()));
+        }
+        if (request.nivelRiesgo() == null) {
+            throw new ExcepcionNegocio("Debe indicar el nivel de riesgo para crear la denuncia formal");
+        }
+
+        DenunciaResponse denuncia = denunciaService.create(new CrearDenunciaRequest(
+                limpiar(request.casoId()),
+                victimaId,
+                preDenuncia.getDescripcionHecho(),
+                preDenuncia.getTipoViolencia(),
+                preDenuncia.getFechaIncidente(),
+                preDenuncia.getDistrito(),
+                preDenuncia.getDireccionReferencia(),
+                request.nivelRiesgo(),
+                Boolean.TRUE.equals(request.formalizarAnonima()) || preDenuncia.isAnonima(),
+                null
+        ));
+        return new DenunciaFormalizada(denuncia.id(), denuncia.casoId());
     }
 
     private void garantizarAliasActivo(String victimaId, String actorId, OffsetDateTime ahora) {
@@ -248,5 +354,8 @@ public class PreDenunciaService {
 
     private String limpiar(String valor) {
         return valor == null ? null : valor.trim();
+    }
+
+    private record DenunciaFormalizada(String denunciaId, String casoId) {
     }
 }

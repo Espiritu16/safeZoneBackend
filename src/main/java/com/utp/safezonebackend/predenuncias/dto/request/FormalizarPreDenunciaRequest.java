@@ -1,10 +1,12 @@
 package com.utp.safezonebackend.predenuncias.dto.request;
 
-import jakarta.validation.constraints.NotBlank;
+import com.utp.safezonebackend.denuncias.enums.NivelRiesgo;
 
 public record FormalizarPreDenunciaRequest(
-        @NotBlank String victimaId,
-        @NotBlank String denunciaId,
-        String casoId
+        String victimaId,
+        String denunciaId,
+        String casoId,
+        NivelRiesgo nivelRiesgo,
+        Boolean formalizarAnonima
 ) {
 }

@@ -40,6 +40,11 @@ public class PreDenunciaController {
         return ResponseEntity.ok(service.listar(estado));
     }
 
+    @GetMapping("/mis-registros")
+    public ResponseEntity<List<PreDenunciaResponse>> listarMisRegistros() {
+        return ResponseEntity.ok(service.listarMisRegistros());
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<PreDenunciaResponse> buscarPorId(@PathVariable String id) {
         return ResponseEntity.ok(service.buscarPorId(id));
