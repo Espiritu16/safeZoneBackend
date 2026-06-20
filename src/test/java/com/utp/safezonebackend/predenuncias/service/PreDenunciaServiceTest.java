@@ -12,6 +12,7 @@ import com.utp.safezonebackend.denuncias.dto.request.CrearDenunciaRequest;
 import com.utp.safezonebackend.denuncias.dto.response.DenunciaResponse;
 import com.utp.safezonebackend.denuncias.enums.NivelRiesgo;
 import com.utp.safezonebackend.denuncias.service.DenunciaService;
+import com.utp.safezonebackend.predenuncias.dto.request.CrearPreDenunciaRequest;
 import com.utp.safezonebackend.predenuncias.dto.request.FormalizarPreDenunciaRequest;
 import com.utp.safezonebackend.predenuncias.dto.response.PreDenunciaResponse;
 import com.utp.safezonebackend.predenuncias.entity.PreDenuncia;
@@ -24,6 +25,7 @@ import com.utp.safezonebackend.usuarios.repository.UsuarioRepository;
 import com.utp.safezonebackend.victimas.entity.VictimaAlias;
 import com.utp.safezonebackend.victimas.repository.VictimaAliasRepository;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -63,6 +65,51 @@ class PreDenunciaServiceTest {
     @AfterEach
     void tearDown() {
         SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    void registrarPredenunciaDesdeVictimaAutenticadaLaVinculaConSuUsuario() {
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken("victima@gmail.com", "N/A"));
+        Usuario victima = usuario("victima-1", RolUsuario.VICTIMA);
+        when(usuarioRepository.buscarPorCorreo("victima@gmail.com")).thenReturn(Optional.of(victima));
+        when(repository.save(any(PreDenuncia.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        PreDenunciaResponse response = service.registrar(new CrearPreDenunciaRequest(
+                "Maria",
+                "Victima",
+                "999888777",
+                "victima@gmail.com",
+                "Descripcion detallada para registrar una predenuncia vinculada",
+                "FISICA",
+                OffsetDateTime.now().minusDays(1),
+                "Comas",
+                "Registrada desde el panel de victima",
+                false
+        ));
+
+        assertThat(response.victimaId()).isEqualTo("victima-1");
+
+        ArgumentCaptor<PreDenuncia> captor = ArgumentCaptor.forClass(PreDenuncia.class);
+        verify(repository).save(captor.capture());
+        assertThat(captor.getValue().getVictimaId()).isEqualTo("victima-1");
+        assertThat(captor.getValue().getCreadoPor()).isEqualTo("victima-1");
+        assertThat(captor.getValue().isAnonima()).isFalse();
+    }
+
+    @Test
+    void listarMisRegistrosDevuelvePredenunciasDeLaVictimaAutenticada() {
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken("victima@gmail.com", "N/A"));
+        Usuario victima = usuario("victima-1", RolUsuario.VICTIMA);
+        PreDenuncia preDenuncia = preDenuncia(EstadoPreDenuncia.PENDIENTE);
+        preDenuncia.setVictimaId("victima-1");
+
+        when(usuarioRepository.buscarPorCorreo("victima@gmail.com")).thenReturn(Optional.of(victima));
+        when(repository.findByVictimaIdAndActivoTrueOrderByFechaCreacionDesc("victima-1")).thenReturn(List.of(preDenuncia));
+
+        List<PreDenunciaResponse> response = service.listarMisRegistros();
+
+        assertThat(response).hasSize(1);
+        assertThat(response.getFirst().victimaId()).isEqualTo("victima-1");
     }
 
     @Test
