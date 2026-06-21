@@ -50,6 +50,10 @@ public class ConfiguracionSeguridad {
                                 "/v3/api-docs/**"
                         ).permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/predenuncias").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/usuarios")
+                        .hasAnyRole("ADMIN", "RECEPCIONISTA")
+                        .requestMatchers(HttpMethod.POST, "/api/usuarios")
+                        .hasAnyRole("ADMIN", "RECEPCIONISTA")
                         .requestMatchers(
                                 "/api/auth/refresh-tokens/**",
                                 "/api/usuarios/**",

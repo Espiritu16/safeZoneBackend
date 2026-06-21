@@ -60,8 +60,8 @@ public class AuthController {
     @Operation(summary = "Iniciar sesion")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Inicio de sesion correcto"),
-            @ApiResponse(responseCode = "400", description = "Credenciales invalidas"),
-            @ApiResponse(responseCode = "404", description = "Usuario no encontrado"),
+            @ApiResponse(responseCode = "400", description = "Solicitud invalida"),
+            @ApiResponse(responseCode = "401", description = "Credenciales invalidas"),
             @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @PostMapping("/iniciar-sesion")
