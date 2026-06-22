@@ -66,14 +66,15 @@ public class AuthService {
 
     @Transactional
     public RespuestaBasica registrarUsuario(SolicitudRegistro solicitud) {
-        if (usuarioRepository.existePorCorreo(solicitud.correo())) {
+        String correoNormalizado = normalizarCorreo(solicitud.correo());
+        if (usuarioRepository.existePorCorreo(correoNormalizado)) {
             throw new ExcepcionNegocio("El correo ya se encuentra registrado");
         }
         configuracionSeguridadService.validarContrasenaSegura(solicitud.contrasena());
 
         Usuario usuario = new Usuario();
         usuario.setId(UUID.randomUUID().toString());
-        usuario.setCorreo(solicitud.correo().trim().toLowerCase());
+        usuario.setCorreo(correoNormalizado);
         usuario.setContrasenaHash(passwordEncoder.encode(solicitud.contrasena()));
         usuario.setNombres(solicitud.nombre().trim());
         usuario.setApellidos("N/A");
@@ -85,6 +86,10 @@ public class AuthService {
         usuarioRepository.save(usuario);
 
         return new RespuestaBasica(true, "Cuenta creada correctamente");
+    }
+
+    private String normalizarCorreo(String correo) {
+        return correo == null ? "" : correo.trim().toLowerCase();
     }
 
     @Transactional
