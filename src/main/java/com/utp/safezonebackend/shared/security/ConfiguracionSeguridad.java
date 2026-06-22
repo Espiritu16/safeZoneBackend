@@ -108,6 +108,7 @@ public class ConfiguracionSeguridad {
                 "http://127.0.0.1:*",
                 "http://10.0.2.2",
                 "http://10.0.2.2:*",
+                "https://safezone.proyectoutp.com",
                 "capacitor://localhost",
                 "ionic://localhost"
         ));
