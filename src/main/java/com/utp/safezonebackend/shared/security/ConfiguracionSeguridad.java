@@ -99,11 +99,17 @@ public class ConfiguracionSeguridad {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of(
-                "http://localhost:4200",
-                "http://127.0.0.1:4200",
-                "http://localhost:4300",
-                "http://127.0.0.1:4300"
+        configuration.setAllowedOriginPatterns(List.of(
+                "http://localhost",
+                "http://localhost:*",
+                "https://localhost",
+                "https://localhost:*",
+                "http://127.0.0.1",
+                "http://127.0.0.1:*",
+                "http://10.0.2.2",
+                "http://10.0.2.2:*",
+                "capacitor://localhost",
+                "ionic://localhost"
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Origin"));
