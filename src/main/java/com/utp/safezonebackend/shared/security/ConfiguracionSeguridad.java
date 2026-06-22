@@ -3,11 +3,17 @@ package com.utp.safezonebackend.shared.security;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
 public class ConfiguracionSeguridad {
@@ -21,6 +27,7 @@ public class ConfiguracionSeguridad {
     @Bean
     public SecurityFilterChain filtroSeguridad(HttpSecurity http) throws Exception {
         http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(excepciones -> excepciones
@@ -38,9 +45,15 @@ public class ConfiguracionSeguridad {
                                 "/api/auth/recuperar-contrasena",
                                 "/api/auth/verificar-codigo",
                                 "/api/auth/restablecer-contrasena",
+                                "/health",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**"
                         ).permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/predenuncias").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/usuarios")
+                        .hasAnyRole("ADMIN", "RECEPCIONISTA")
+                        .requestMatchers(HttpMethod.POST, "/api/usuarios")
+                        .hasAnyRole("ADMIN", "RECEPCIONISTA")
                         .requestMatchers(
                                 "/api/auth/refresh-tokens/**",
                                 "/api/usuarios/**",
@@ -48,13 +61,19 @@ public class ConfiguracionSeguridad {
                                 "/api/auditoria/**",
                                 "/api/reportes/**"
                         ).hasRole("ADMIN")
+                        .requestMatchers("/api/panel-principal/**")
+                        .hasAnyRole("ADMIN", "RECEPCIONISTA", "PSICOLOGO", "DEFENSOR", "VICTIMA")
+                        .requestMatchers(HttpMethod.GET, "/api/predenuncias/mis-registros")
+                        .hasRole("VICTIMA")
+                        .requestMatchers("/api/predenuncias/**")
+                        .hasAnyRole("ADMIN", "RECEPCIONISTA")
                         .requestMatchers("/api/casos/**")
                         .hasAnyRole("ADMIN", "RECEPCIONISTA", "PSICOLOGO", "DEFENSOR")
                         // Citas — profesionales y recepcionista
                         .requestMatchers("/api/citas/**")
                         .hasAnyRole("ADMIN", "RECEPCIONISTA", "PSICOLOGO", "DEFENSOR")
                         // Víctimas y alias — personal autorizado
-                        .requestMatchers("/api/victimas/**")
+                        .requestMatchers("/api/victimas/**", "/api/victimasalias/**")
                         .hasAnyRole("ADMIN", "RECEPCIONISTA", "PSICOLOGO", "DEFENSOR")
                         // Denuncias
                         .requestMatchers("/api/denuncias/**")
@@ -75,6 +94,33 @@ public class ConfiguracionSeguridad {
                 );
         http.addFilterBefore(filtroAutenticacionJwt, UsernamePasswordAuthenticationFilter.class);
         return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOriginPatterns(List.of(
+                "http://localhost",
+                "http://localhost:*",
+                "https://localhost",
+                "https://localhost:*",
+                "http://127.0.0.1",
+                "http://127.0.0.1:*",
+                "http://10.0.2.2",
+                "http://10.0.2.2:*",
+                "https://safezone.proyectoutp.com",
+                "capacitor://localhost",
+                "ionic://localhost"
+        ));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Origin"));
+        configuration.setExposedHeaders(List.of("Authorization"));
+        configuration.setAllowCredentials(false);
+        configuration.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/api/**", configuration);
+        return source;
     }
 
     private void escribirErrorSeguridad(HttpServletResponse response, int status, String mensaje) throws java.io.IOException {

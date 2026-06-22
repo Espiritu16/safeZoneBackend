@@ -13,6 +13,7 @@ import com.utp.safezonebackend.auth.dto.response.RespuestaRenovarToken;
 import com.utp.safezonebackend.auth.entity.RefreshToken;
 import com.utp.safezonebackend.auth.repository.RefreshTokenRepository;
 import com.utp.safezonebackend.configuracion.service.ConfiguracionSeguridadService;
+import com.utp.safezonebackend.shared.exception.ExcepcionAutenticacion;
 import com.utp.safezonebackend.shared.exception.ExcepcionNegocio;
 import com.utp.safezonebackend.shared.exception.RecursoNoEncontradoException;
 import com.utp.safezonebackend.shared.security.ServicioJwt;
@@ -35,6 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthService {
 
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+    private static final String MENSAJE_CREDENCIALES_INVALIDAS = "Correo o contraseña incorrectos.";
 
     private final UsuarioRepository usuarioRepository;
     private final RefreshTokenRepository refreshTokenRepository;
@@ -64,14 +66,15 @@ public class AuthService {
 
     @Transactional
     public RespuestaBasica registrarUsuario(SolicitudRegistro solicitud) {
-        if (usuarioRepository.existePorCorreo(solicitud.correo())) {
+        String correoNormalizado = normalizarCorreo(solicitud.correo());
+        if (usuarioRepository.existePorCorreo(correoNormalizado)) {
             throw new ExcepcionNegocio("El correo ya se encuentra registrado");
         }
         configuracionSeguridadService.validarContrasenaSegura(solicitud.contrasena());
 
         Usuario usuario = new Usuario();
         usuario.setId(UUID.randomUUID().toString());
-        usuario.setCorreo(solicitud.correo().trim().toLowerCase());
+        usuario.setCorreo(correoNormalizado);
         usuario.setContrasenaHash(passwordEncoder.encode(solicitud.contrasena()));
         usuario.setNombres(solicitud.nombre().trim());
         usuario.setApellidos("N/A");
@@ -85,13 +88,17 @@ public class AuthService {
         return new RespuestaBasica(true, "Cuenta creada correctamente");
     }
 
+    private String normalizarCorreo(String correo) {
+        return correo == null ? "" : correo.trim().toLowerCase();
+    }
+
     @Transactional
     public RespuestaLogin iniciarSesion(SolicitudLogin solicitud) {
-        Usuario usuario = usuarioRepository.buscarPorCorreo(solicitud.correo())
-                .orElseThrow(() -> {
-                    auditarEvento("LOGIN_FALLIDO", null, ResultadoAuditoria.ERROR, "Correo inexistente", Map.of("correo", solicitud.correo()));
-                    return new RecursoNoEncontradoException("El correo no existe");
-                });
+        Usuario usuario = usuarioRepository.buscarPorCorreo(solicitud.correo().trim().toLowerCase()).orElse(null);
+        if (usuario == null) {
+            auditarEvento("LOGIN_FALLIDO", null, ResultadoAuditoria.ERROR, "Credenciales invalidas", Map.of("correo", solicitud.correo()));
+            throw new ExcepcionAutenticacion(MENSAJE_CREDENCIALES_INVALIDAS);
+        }
 
         if (!usuario.isActivo()) {
             auditarEvento("LOGIN_FALLIDO", usuario, ResultadoAuditoria.ERROR, "Usuario inactivo", Map.of("correo", usuario.getCorreo()));
@@ -101,7 +108,7 @@ public class AuthService {
         boolean contrasenaValida = passwordEncoder.matches(solicitud.contrasena(), usuario.getContrasenaHash());
         if (!contrasenaValida) {
             auditarEvento("LOGIN_FALLIDO", usuario, ResultadoAuditoria.ERROR, "Credenciales invalidas", Map.of("correo", usuario.getCorreo()));
-            throw new ExcepcionNegocio("Credenciales invalidas");
+            throw new ExcepcionAutenticacion(MENSAJE_CREDENCIALES_INVALIDAS);
         }
 
         String tokenAcceso = servicioJwt.generarTokenAcceso(

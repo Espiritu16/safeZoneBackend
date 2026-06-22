@@ -1,116 +1,226 @@
 package com.utp.safezonebackend.victimas.service;
 
-import com.utp.safezonebackend.casos.entity.Caso;
-import com.utp.safezonebackend.casos.repository.CasoRepository;
-import com.utp.safezonebackend.citas.mapper.CitaMapper;
-import com.utp.safezonebackend.citas.repository.CitaRepository;
-import com.utp.safezonebackend.denuncias.mapper.DenunciaMapper;
-import com.utp.safezonebackend.denuncias.repository.DenunciaRepository;
-import com.utp.safezonebackend.evidencias.mapper.EvidenciaMapper;
-import com.utp.safezonebackend.evidencias.repository.EvidenciaRepository;
-import com.utp.safezonebackend.seguimientos.mapper.SeguimientoCasoMapper;
-import com.utp.safezonebackend.seguimientos.repository.SeguimientoCasoRepository;
-import com.utp.safezonebackend.victimas.dto.response.VictimaHistorialResponse;
 import com.utp.safezonebackend.shared.exception.RecursoNoEncontradoException;
 import com.utp.safezonebackend.usuarios.repository.UsuarioRepository;
-import org.springframework.stereotype.Service;
-
+import com.utp.safezonebackend.victimas.dto.response.VictimaHistorialResponse;
+import com.utp.safezonebackend.victimas.dto.response.VictimaHistorialResponse.HistorialItem;
+import com.utp.safezonebackend.victimas.entity.VictimaAlias;
+import com.utp.safezonebackend.victimas.repository.VictimaAliasRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class VictimaHistorialService {
 
-    private final DenunciaRepository denunciaRepository;
-    private final DenunciaMapper denunciaMapper;
+    @PersistenceContext
+    private EntityManager entityManager;
 
-    private final CitaRepository citaRepository;
-    private final CitaMapper citaMapper;
-
-    private final CasoRepository casoRepository;
-
-    private final SeguimientoCasoRepository seguimientoCasoRepository;
-    private final SeguimientoCasoMapper seguimientoCasoMapper;
-
-    private final EvidenciaRepository evidenciaRepository;
-    private final EvidenciaMapper evidenciaMapper;
-    
+    private final VictimaAliasRepository victimaAliasRepository;
     private final UsuarioRepository usuarioRepository;
 
-    public VictimaHistorialService(
-            DenunciaRepository denunciaRepository, DenunciaMapper denunciaMapper,
-            CitaRepository citaRepository, CitaMapper citaMapper,
-            CasoRepository casoRepository,
-            SeguimientoCasoRepository seguimientoCasoRepository, SeguimientoCasoMapper seguimientoCasoMapper,
-            EvidenciaRepository evidenciaRepository, EvidenciaMapper evidenciaMapper,
-            UsuarioRepository usuarioRepository) {
-        this.denunciaRepository = denunciaRepository;
-        this.denunciaMapper = denunciaMapper;
-        this.citaRepository = citaRepository;
-        this.citaMapper = citaMapper;
-        this.casoRepository = casoRepository;
-        this.seguimientoCasoRepository = seguimientoCasoRepository;
-        this.seguimientoCasoMapper = seguimientoCasoMapper;
-        this.evidenciaRepository = evidenciaRepository;
-        this.evidenciaMapper = evidenciaMapper;
+    public VictimaHistorialService(VictimaAliasRepository victimaAliasRepository, UsuarioRepository usuarioRepository) {
+        this.victimaAliasRepository = victimaAliasRepository;
         this.usuarioRepository = usuarioRepository;
     }
 
+    @Transactional(readOnly = true)
     public VictimaHistorialResponse obtenerHistorialPorVictima(String victimaId) {
+        return obtenerPorVictimaId(victimaId);
+    }
+
+    @Transactional(readOnly = true)
+    public VictimaHistorialResponse obtenerPorVictimaId(String victimaId) {
         if (!usuarioRepository.existsById(victimaId)) {
-            throw new RecursoNoEncontradoException("Víctima no encontrada con ID: " + victimaId);
+            throw new RecursoNoEncontradoException("Victima no encontrada con ID: " + victimaId);
         }
+        String aliasActivo = obtenerAliasActivo(victimaId);
+        List<HistorialItem> denuncias = obtenerDenuncias(victimaId);
+        List<HistorialItem> citas = obtenerCitas(victimaId);
+        List<HistorialItem> seguimientos = obtenerSeguimientos(victimaId);
+        List<HistorialItem> evidencias = obtenerEvidencias(victimaId);
+        List<HistorialItem> lineaTiempo = new ArrayList<>();
+        lineaTiempo.addAll(denuncias);
+        lineaTiempo.addAll(citas);
+        lineaTiempo.addAll(seguimientos);
+        lineaTiempo.addAll(evidencias);
+        lineaTiempo.sort(Comparator.comparing(HistorialItem::fecha, Comparator.nullsLast(Comparator.naturalOrder())).reversed());
 
-        VictimaHistorialResponse response = new VictimaHistorialResponse();
-        response.setVictimaId(victimaId);
+        return new VictimaHistorialResponse(
+                victimaId,
+                aliasActivo,
+                denuncias,
+                citas,
+                seguimientos,
+                evidencias,
+                lineaTiempo
+        );
+    }
 
-        // Denuncias
-        var denuncias = denunciaRepository.findByVictimaIdAndEliminadoFalse(victimaId);
-        response.setDenuncias(denuncias.stream().map(denunciaMapper::toResponse).collect(Collectors.toList()));
+    @Transactional(readOnly = true)
+    public VictimaHistorialResponse obtenerPorAlias(String aliasCodigo) {
+        VictimaAlias alias = victimaAliasRepository
+                .findTopByAliasCodigoIgnoreCaseAndActivoTrueOrderByFechaAsignacionDesc(aliasCodigo)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Alias de victima no encontrado"));
+        return obtenerPorVictimaId(alias.getVictima().getId());
+    }
 
-        // Citas
-        var citas = citaRepository.findByVictimaIdAndEliminadoFalse(victimaId);
-        response.setCitas(citas.stream().map(citaMapper::toResponse).collect(Collectors.toList()));
+    private String obtenerAliasActivo(String victimaId) {
+        return victimaAliasRepository
+                .findTopByVictimaIdAndActivoTrueOrderByFechaAsignacionDesc(victimaId)
+                .map(VictimaAlias::getAliasCodigo)
+                .orElse(null);
+    }
 
-        // Para Seguimientos y Evidencias, primero obtenemos los IDs de los casos de esta víctima
-        List<String> casoIds = casoRepository.findByVictimaIdAndEliminadoFalse(victimaId)
-                .stream().map(Caso::getId).collect(Collectors.toList());
+    private List<HistorialItem> obtenerDenuncias(String victimaId) {
+        @SuppressWarnings("unchecked")
+        List<Object[]> rows = entityManager.createNativeQuery("""
+                SELECT id, caso_id, tipo_violencia, descripcion, nivel_riesgo, fecha_creacion
+                FROM denuncia
+                WHERE victima_id = :victimaId AND activo = 1
+                ORDER BY fecha_creacion DESC
+                """)
+                .setParameter("victimaId", victimaId)
+                .getResultList();
 
-        // También necesitamos los IDs de las denuncias para las evidencias
-        List<String> denunciaIds = denuncias.stream().map(d -> d.getId()).collect(Collectors.toList());
+        return rows.stream()
+                .map(row -> item(
+                        "DENUNCIA",
+                        str(row[0]),
+                        str(row[1]),
+                        valorO(row[2], "Denuncia registrada"),
+                        str(row[3]),
+                        str(row[4]),
+                        fecha(row[5]),
+                        Map.of("tipoViolencia", valorO(row[2], "N/A"), "nivelRiesgo", valorO(row[4], "N/A"))
+                ))
+                .toList();
+    }
 
-        if (!casoIds.isEmpty()) {
-            // Seguimientos
-            var seguimientos = seguimientoCasoRepository.findByCasoIdInAndEliminadoFalse(casoIds);
-            response.setSeguimientos(seguimientos.stream().map(seguimientoCasoMapper::toResponse).collect(Collectors.toList()));
+    private List<HistorialItem> obtenerCitas(String victimaId) {
+        @SuppressWarnings("unchecked")
+        List<Object[]> rows = entityManager.createNativeQuery("""
+                SELECT id, caso_id, tipo_cita, estado, observaciones, fecha_inicio
+                FROM cita
+                WHERE victima_id = :victimaId AND activo = 1
+                ORDER BY fecha_inicio DESC
+                """)
+                .setParameter("victimaId", victimaId)
+                .getResultList();
 
-            // Evidencias (por casoId)
-            var evidenciasPorCaso = evidenciaRepository.findByCasoIdInAndEliminadoFalse(casoIds);
-            var evidencias = evidenciasPorCaso.stream().collect(Collectors.toList());
-            
-            // Evidencias (por denunciaId) - si las denuncias no están vacías
-            if (!denunciaIds.isEmpty()) {
-                 var evidenciasPorDenuncia = evidenciaRepository.findByDenunciaIdInAndEliminadoFalse(denunciaIds);
-                 for(var ev : evidenciasPorDenuncia) {
-                     if(evidencias.stream().noneMatch(e -> e.getId().equals(ev.getId()))) {
-                         evidencias.add(ev);
-                     }
-                 }
-            }
-            
-            response.setEvidencias(evidencias.stream().map(evidenciaMapper::toResponse).collect(Collectors.toList()));
-        } else {
-            response.setSeguimientos(List.of());
-            
-            // Aún podríamos tener evidencias por denunciaId
-            if (!denunciaIds.isEmpty()) {
-                 var evidenciasPorDenuncia = evidenciaRepository.findByDenunciaIdInAndEliminadoFalse(denunciaIds);
-                 response.setEvidencias(evidenciasPorDenuncia.stream().map(evidenciaMapper::toResponse).collect(Collectors.toList()));
-            } else {
-                 response.setEvidencias(List.of());
-            }
+        return rows.stream()
+                .map(row -> item(
+                        "CITA",
+                        str(row[0]),
+                        str(row[1]),
+                        "Cita " + valorO(row[2], "programada"),
+                        str(row[4]),
+                        str(row[3]),
+                        fecha(row[5]),
+                        Map.of("tipoCita", valorO(row[2], "N/A"))
+                ))
+                .toList();
+    }
+
+    private List<HistorialItem> obtenerSeguimientos(String victimaId) {
+        @SuppressWarnings("unchecked")
+        List<Object[]> rows = entityManager.createNativeQuery("""
+                SELECT s.id, s.caso_id, s.tipo_seguimiento, s.contenido, s.proxima_accion, s.fecha_creacion
+                FROM seguimiento_caso s
+                INNER JOIN caso c ON c.id = s.caso_id
+                WHERE c.victima_id = :victimaId AND s.activo = 1 AND c.activo = 1
+                ORDER BY s.fecha_creacion DESC
+                """)
+                .setParameter("victimaId", victimaId)
+                .getResultList();
+
+        return rows.stream()
+                .map(row -> item(
+                        "SEGUIMIENTO",
+                        str(row[0]),
+                        str(row[1]),
+                        valorO(row[2], "Seguimiento registrado"),
+                        str(row[3]),
+                        str(row[4]),
+                        fecha(row[5]),
+                        Map.of("proximaAccion", valorO(row[4], "N/A"))
+                ))
+                .toList();
+    }
+
+    private List<HistorialItem> obtenerEvidencias(String victimaId) {
+        @SuppressWarnings("unchecked")
+        List<Object[]> rows = entityManager.createNativeQuery("""
+                SELECT DISTINCT e.id, e.caso_id, e.nombre_archivo, e.tipo_mime, e.fecha_creacion, e.denuncia_id
+                FROM evidencia e
+                LEFT JOIN caso c ON c.id = e.caso_id
+                LEFT JOIN denuncia d ON d.id = e.denuncia_id
+                WHERE e.activo = 1
+                  AND (c.victima_id = :victimaId OR d.victima_id = :victimaId)
+                ORDER BY e.fecha_creacion DESC
+                """)
+                .setParameter("victimaId", victimaId)
+                .getResultList();
+
+        return rows.stream()
+                .map(row -> item(
+                        "EVIDENCIA",
+                        str(row[0]),
+                        str(row[1]),
+                        valorO(row[2], "Evidencia digital"),
+                        "Archivo asociado al expediente",
+                        str(row[3]),
+                        fecha(row[4]),
+                        Map.of("denunciaId", valorO(row[5], "N/A"), "tipoMime", valorO(row[3], "N/A"))
+                ))
+                .toList();
+    }
+
+    private HistorialItem item(
+            String tipo,
+            String id,
+            String casoId,
+            String titulo,
+            String detalle,
+            String estado,
+            OffsetDateTime fecha,
+            Map<String, Object> metadata
+    ) {
+        return new HistorialItem(tipo, id, casoId, titulo, detalle, estado, fecha, new LinkedHashMap<>(metadata));
+    }
+
+    private String str(Object value) {
+        return value == null ? null : value.toString();
+    }
+
+    private String valorO(Object value, String fallback) {
+        String text = str(value);
+        return text == null || text.isBlank() ? fallback : text;
+    }
+
+    private OffsetDateTime fecha(Object value) {
+        if (value == null) {
+            return null;
         }
-
-        return response;
+        if (value instanceof OffsetDateTime offsetDateTime) {
+            return offsetDateTime;
+        }
+        if (value instanceof Timestamp timestamp) {
+            return timestamp.toInstant().atOffset(ZoneOffset.UTC);
+        }
+        if (value instanceof LocalDateTime localDateTime) {
+            return localDateTime.atOffset(ZoneOffset.UTC);
+        }
+        return null;
     }
 }

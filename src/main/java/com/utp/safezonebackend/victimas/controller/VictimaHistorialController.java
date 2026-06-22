@@ -36,4 +36,15 @@ public class VictimaHistorialController {
             Authentication authentication) {
         return ResponseEntity.ok(service.obtenerHistorialPorVictima(id));
     }
+
+    @Operation(summary = "Obtener historial consolidado mediante alias anonimo")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Operación exitosa"),
+            @ApiResponse(responseCode = "404", description = "Alias no encontrado"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    @GetMapping("/alias/{aliasCodigo}/historial")
+    public ResponseEntity<VictimaHistorialResponse> obtenerHistorialPorAlias(@PathVariable String aliasCodigo) {
+        return ResponseEntity.ok(service.obtenerPorAlias(aliasCodigo));
+    }
 }

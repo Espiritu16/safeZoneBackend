@@ -13,6 +13,11 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class ManejadorGlobalExcepciones {
 
+    @ExceptionHandler(ExcepcionAutenticacion.class)
+    public ResponseEntity<RespuestaBasica> manejarAutenticacion(ExcepcionAutenticacion ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new RespuestaBasica(false, ex.getMessage()));
+    }
+
     @ExceptionHandler(RecursoNoEncontradoException.class)
     public ResponseEntity<RespuestaBasica> manejarNoEncontrado(RecursoNoEncontradoException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new RespuestaBasica(false, ex.getMessage()));
@@ -48,4 +53,3 @@ public class ManejadorGlobalExcepciones {
         return error.getField() + ": " + error.getDefaultMessage();
     }
 }
-
