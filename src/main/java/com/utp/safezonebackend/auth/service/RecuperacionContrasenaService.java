@@ -133,8 +133,12 @@ public class RecuperacionContrasenaService {
     }
 
     private Usuario obtenerUsuarioPorCorreo(String correo) {
-        return usuarioRepository.buscarPorCorreo(correo)
-                .orElseThrow(() -> new RecursoNoEncontradoException("El correo no existe"));
+        return usuarioRepository.buscarPorCorreo(normalizarCorreo(correo))
+                .orElseThrow(() -> new RecursoNoEncontradoException("No existe una cuenta registrada con ese correo"));
+    }
+
+    private String normalizarCorreo(String correo) {
+        return correo == null ? "" : correo.trim().toLowerCase();
     }
 
     private RecuperacionContrasenaCodigo obtenerCodigoActivoPorUsuario(String usuarioId) {
