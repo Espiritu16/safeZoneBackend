@@ -1,13 +1,11 @@
 package com.utp.safezonebackend.usuarios.entity;
 
+import com.utp.safezonebackend.casos.entity.Caso;
 import com.utp.safezonebackend.usuarios.enums.RolUsuario;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+
 import java.time.OffsetDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "usuario")
@@ -53,8 +51,17 @@ public class Usuario {
 
     @Column(name = "fecha_inactivacion")
     private OffsetDateTime fechaInactivacion;
-
+    @OneToMany(mappedBy = "victima")
+    private List<Caso> casosMultiples;
     public Usuario() {
+    }
+
+    public List<Caso> getCasosMultiples() {
+        return casosMultiples;
+    }
+
+    public void setCasosMultiples(List<Caso> casosMultiples) {
+        this.casosMultiples = casosMultiples;
     }
 
     public String getId() {
