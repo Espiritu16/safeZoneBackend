@@ -17,6 +17,7 @@ public record CrearDenunciaRequest(
         @Size(max = 500) String direccionReferencia,
         @NotNull NivelRiesgo nivelRiesgo,
         Boolean anonima,
-        List<String> adjuntos
+        List<String> adjuntos,
+        Integer edad
 ) {
 }

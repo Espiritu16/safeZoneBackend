@@ -7,6 +7,7 @@ public record FormalizarPreDenunciaRequest(
         String denunciaId,
         String casoId,
         NivelRiesgo nivelRiesgo,
-        Boolean formalizarAnonima
+        Boolean formalizarAnonima,
+        Integer edad
 ) {
 }

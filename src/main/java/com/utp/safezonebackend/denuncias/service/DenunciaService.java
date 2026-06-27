@@ -95,6 +95,7 @@ public class DenunciaService {
         denuncia.setAnonima(request.anonima() == null || request.anonima());
         denuncia.setAdjuntos(request.adjuntos());
         denuncia.setActivo(true);
+        denuncia.setEdad(request.edad());
         denuncia.setFechaCreacion(ahora);
         denuncia.setFechaActualizacion(ahora);
         Denuncia guardada = repository.save(denuncia);
