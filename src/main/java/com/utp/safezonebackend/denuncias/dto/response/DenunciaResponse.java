@@ -18,6 +18,7 @@ public record DenunciaResponse(
         List<String> adjuntos,
         boolean activo,
         OffsetDateTime fechaCreacion,
-        OffsetDateTime fechaActualizacion
+        OffsetDateTime fechaActualizacion,
+        Integer edad
 ) {
 }

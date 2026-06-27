@@ -67,10 +67,18 @@ public class Denuncia {
 
     @Column(name = "fecha_inactivacion")
     private OffsetDateTime fechaInactivacion;
+    @Column(name="edad")
+    private Integer edad;
+    public Integer getEdad() {
+        return edad;
+    }
+
+    public void setEdad(Integer edad) {
+        this.edad = edad;
+    }
 
     public Denuncia() {
     }
-
     public String getId() {
         return id;
     }

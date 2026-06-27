@@ -25,7 +25,8 @@ public class DenunciaMapper {
                 entity.getAdjuntos(),
                 entity.isActivo(),
                 entity.getFechaCreacion(),
-                entity.getFechaActualizacion()
+                entity.getFechaActualizacion(),
+                entity.getEdad()
         );
     }
 }

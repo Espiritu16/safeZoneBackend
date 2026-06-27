@@ -263,7 +263,8 @@ public class PreDenunciaService {
                 preDenuncia.getDireccionReferencia(),
                 request.nivelRiesgo(),
                 Boolean.TRUE.equals(request.formalizarAnonima()) || preDenuncia.isAnonima(),
-                null
+                null,
+                request.edad()
         ));
         return new DenunciaFormalizada(denuncia.id(), denuncia.casoId());
     }

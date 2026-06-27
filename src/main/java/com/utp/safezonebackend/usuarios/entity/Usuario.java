@@ -51,18 +51,9 @@ public class Usuario {
 
     @Column(name = "fecha_inactivacion")
     private OffsetDateTime fechaInactivacion;
-    @OneToMany(mappedBy = "victima")
-    private List<Caso> casosMultiples;
     public Usuario() {
     }
 
-    public List<Caso> getCasosMultiples() {
-        return casosMultiples;
-    }
-
-    public void setCasosMultiples(List<Caso> casosMultiples) {
-        this.casosMultiples = casosMultiples;
-    }
 
     public String getId() {
         return id;

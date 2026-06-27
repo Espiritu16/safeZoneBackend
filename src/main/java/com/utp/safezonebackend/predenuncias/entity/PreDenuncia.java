@@ -88,11 +88,17 @@ public class PreDenuncia {
 
     @Column(name = "fecha_inactivacion")
     private OffsetDateTime fechaInactivacion;
-
+    @Column(name="edad")
+    private Integer edad;
     public String getId() {
         return id;
     }
-
+    public Integer getEdad() {
+        return edad;
+    }
+    public void setEdad(Integer edad) {
+        this.edad = edad;
+    }
     public void setId(String id) {
         this.id = id;
     }

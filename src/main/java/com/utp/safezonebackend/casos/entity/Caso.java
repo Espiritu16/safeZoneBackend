@@ -2,7 +2,6 @@ package com.utp.safezonebackend.casos.entity;
 
 import com.utp.safezonebackend.casos.enums.EstadoCaso;
 import com.utp.safezonebackend.casos.enums.PrioridadCaso;
-import com.utp.safezonebackend.casos.enums.tipoViolencia;
 import com.utp.safezonebackend.usuarios.entity.Usuario;
 import jakarta.persistence.*;
 
@@ -15,7 +14,7 @@ public class Caso {
     @Id
     private String id;
 
-    @Column(name = "victima_id", insertable = false, updatable = false)
+    @Column(name = "victima_id")
     private String victimaId;
 
     @Enumerated(EnumType.STRING)
@@ -23,10 +22,7 @@ public class Caso {
 
     @Enumerated(EnumType.STRING)
     private PrioridadCaso prioridad;
-    @Enumerated(EnumType.STRING)
-    private tipoViolencia tipoViolencia;
     private String resumen;
-    private Integer edad;
     private String distrito;
     private boolean activo;
     @Column(name = "fecha_creacion")
@@ -49,9 +45,6 @@ public class Caso {
 
     @Column(name = "fecha_inactivacion")
     private OffsetDateTime fechaInactivacion;
-    @ManyToOne
-    @JoinColumn(name = "victima_id")
-    private Usuario victima;
     public Caso() {
     }
 
@@ -161,24 +154,6 @@ public class Caso {
 
     public OffsetDateTime getFechaInactivacion() {
         return fechaInactivacion;
-    }
-    public tipoViolencia getTipoViolencia() {
-        return tipoViolencia;
-    }
-    public void setTipoViolencia(tipoViolencia tipoViolencia) {
-        this.tipoViolencia = tipoViolencia;
-    }
-    public Integer getEdad() {
-        return edad;
-    }
-    public void setEdad(Integer edad) {
-        this.edad = edad;
-    }
-    public Usuario getVictima() {
-        return victima;
-    }
-    public void setVictima(Usuario victima) {
-        this.victima = victima;
     }
     public void setFechaInactivacion(OffsetDateTime fechaInactivacion) {
         this.fechaInactivacion = fechaInactivacion;
