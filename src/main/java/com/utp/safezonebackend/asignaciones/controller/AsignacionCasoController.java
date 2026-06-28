@@ -13,11 +13,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 
 @Tag(name = "AsignacionCaso", description = "Asignacion de profesionales a casos")
 @RestController
@@ -36,8 +38,8 @@ public class AsignacionCasoController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @GetMapping
-    public ResponseEntity<List<AsignacionCasoResponse>> findAll() {
-        return ResponseEntity.ok(service.findAll());
+    public ResponseEntity<List<AsignacionCasoResponse>> findAll(@RequestParam(required = false) String casoId) {
+        return ResponseEntity.ok(service.findAll(casoId));
     }
 
     @Operation(summary = "Obtener asignacion de caso por ID")
@@ -46,7 +48,7 @@ public class AsignacionCasoController {
         @ApiResponse(responseCode = "404", description = "Recurso no encontrado"),
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
-    @GetMapping("/{id}/inactivar")
+    @GetMapping("/{id}")
     public ResponseEntity<AsignacionCasoResponse> findById(@PathVariable String id) {
         return ResponseEntity.ok(service.findById(id));
     }
@@ -58,7 +60,7 @@ public class AsignacionCasoController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @PostMapping
-    public ResponseEntity crear(@RequestBody CrearAsignacionCasoRequest request) {
+    public ResponseEntity<AsignacionCasoResponse> crear(@Valid @RequestBody CrearAsignacionCasoRequest request) {
         return ResponseEntity.ok(service.create(request));
     }
 
@@ -69,8 +71,8 @@ public class AsignacionCasoController {
         @ApiResponse(responseCode = "404", description = "Recurso no encontrado"),
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
-    @PutMapping("/{id}/inactivar")
-    public ResponseEntity actualizar(@PathVariable String id, @RequestBody ActualizarAsignacionCasoRequest request) {
+    @PutMapping("/{id}")
+    public ResponseEntity<AsignacionCasoResponse> actualizar(@PathVariable String id, @RequestBody ActualizarAsignacionCasoRequest request) {
         return ResponseEntity.ok(service.update(id, request));
     }
 

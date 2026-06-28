@@ -37,9 +37,9 @@ public class CasoService {
 
     static {
         TRANSICIONES.put(EstadoCaso.REGISTRADO, EnumSet.of(EstadoCaso.EN_EVALUACION));
-        TRANSICIONES.put(EstadoCaso.EN_EVALUACION, EnumSet.of(EstadoCaso.EN_ATENCION));
-        TRANSICIONES.put(EstadoCaso.EN_ATENCION, EnumSet.of(EstadoCaso.DERIVADO, EstadoCaso.CERRADO));
-        TRANSICIONES.put(EstadoCaso.DERIVADO, EnumSet.of(EstadoCaso.EN_ATENCION));
+        TRANSICIONES.put(EstadoCaso.EN_EVALUACION, EnumSet.of(EstadoCaso.EN_ATENCION, EstadoCaso.CERRADO));
+        TRANSICIONES.put(EstadoCaso.EN_ATENCION, EnumSet.of(EstadoCaso.EN_EVALUACION, EstadoCaso.DERIVADO, EstadoCaso.CERRADO));
+        TRANSICIONES.put(EstadoCaso.DERIVADO, EnumSet.of(EstadoCaso.EN_ATENCION, EstadoCaso.CERRADO));
         TRANSICIONES.put(EstadoCaso.CERRADO, EnumSet.of(EstadoCaso.ARCHIVADO));
         TRANSICIONES.put(EstadoCaso.ARCHIVADO, EnumSet.noneOf(EstadoCaso.class));
     }
