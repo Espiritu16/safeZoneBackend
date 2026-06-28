@@ -63,7 +63,7 @@ class DenunciaServiceTest {
                     denuncia.getDescripcion(), denuncia.getTipoViolencia(), denuncia.getFechaIncidente(),
                     denuncia.getDistrito(), denuncia.getDireccionReferencia(), denuncia.getNivelRiesgo(),
                     denuncia.isAnonima(), denuncia.getAdjuntos(), denuncia.isActivo(),
-                    denuncia.getFechaCreacion(), denuncia.getFechaActualizacion());
+                    denuncia.getFechaCreacion(), denuncia.getFechaActualizacion(), denuncia.getEdad());
         });
 
         DenunciaResponse response = service.create(new CrearDenunciaRequest(
@@ -76,6 +76,7 @@ class DenunciaServiceTest {
                 "Referencia segura",
                 NivelRiesgo.CRITICO,
                 true,
+                null,
                 null
         ));
 
