@@ -131,7 +131,8 @@ class PreDenunciaServiceTest {
                 null,
                 true,
                 OffsetDateTime.now(),
-                OffsetDateTime.now()
+                OffsetDateTime.now(),
+                null
         );
 
         when(repository.findById("pre-1")).thenReturn(Optional.of(preDenuncia));
@@ -146,7 +147,8 @@ class PreDenunciaServiceTest {
                 null,
                 null,
                 NivelRiesgo.ALTO,
-                false
+                false,
+                null
         ));
 
         assertThat(response.estado()).isEqualTo(EstadoPreDenuncia.FORMALIZADA);
@@ -170,7 +172,8 @@ class PreDenunciaServiceTest {
                 null,
                 null,
                 NivelRiesgo.ALTO,
-                false
+                false,
+                null
         ))).isInstanceOf(ExcepcionNegocio.class)
                 .hasMessageContaining("Debe marcar la predenuncia en contacto");
     }
@@ -196,7 +199,8 @@ class PreDenunciaServiceTest {
                 null,
                 true,
                 OffsetDateTime.now(),
-                OffsetDateTime.now()
+                OffsetDateTime.now(),
+                null
         );
 
         when(repository.findById("pre-1")).thenReturn(Optional.of(preDenuncia));
@@ -214,7 +218,8 @@ class PreDenunciaServiceTest {
                 null,
                 null,
                 NivelRiesgo.CRITICO,
-                true
+                true,
+                null
         ));
 
         assertThat(response.estado()).isEqualTo(EstadoPreDenuncia.FORMALIZADA);
