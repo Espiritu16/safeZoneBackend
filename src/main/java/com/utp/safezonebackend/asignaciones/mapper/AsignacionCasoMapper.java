@@ -8,6 +8,19 @@ import org.springframework.stereotype.Component;
 public class AsignacionCasoMapper {
 
     public AsignacionCasoResponse toResponse(AsignacionCaso entity) {
-        return new AsignacionCasoResponse();
+        return new AsignacionCasoResponse(
+                entity.getId(),
+                entity.getCasoId(),
+                entity.getProfesionalId(),
+                entity.getRolProfesional(),
+                entity.isActivo(),
+                entity.getFechaAsignacion(),
+                entity.getFechaFin(),
+                entity.getAsignadoPor(),
+                entity.getFechaActualizacion(),
+                entity.getActualizadoPor(),
+                entity.getInactivadoPor(),
+                entity.getFechaInactivacion()
+        );
     }
 }
