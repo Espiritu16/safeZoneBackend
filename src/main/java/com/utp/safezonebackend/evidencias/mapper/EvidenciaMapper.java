@@ -8,6 +8,15 @@ import org.springframework.stereotype.Component;
 public class EvidenciaMapper {
 
     public EvidenciaResponse toResponse(Evidencia entity) {
-        return new EvidenciaResponse();
+        return new EvidenciaResponse(
+                entity.getId(),
+                entity.getUrlAlmacenamiento(),
+                entity.getNombreArchivo(),
+                entity.getTamanoBytes(),
+                entity.getSubidoPor(),
+                entity.getFechaCreacion().toString(),
+                entity.getCasoId(),
+                entity.getDenunciaId()
+        );
     }
 }
