@@ -47,7 +47,7 @@ public class EvidenciaController {
         @ApiResponse(responseCode = "404", description = "Recurso no encontrado"),
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
-    @GetMapping("/{id}/inactivar")
+    @GetMapping("/{id}")
     public ResponseEntity<EvidenciaResponse> findById(@PathVariable String id) {
         return ResponseEntity.ok(service.findById(id));
     }
@@ -76,7 +76,7 @@ public class EvidenciaController {
         @ApiResponse(responseCode = "404", description = "Recurso no encontrado"),
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
-    @PutMapping("/{id}/inactivar")
+    @PutMapping("/{id}")
     public ResponseEntity actualizar(@PathVariable String id, @RequestBody ActualizarEvidenciaRequest request) {
         return ResponseEntity.ok(service.update(id, request));
     }

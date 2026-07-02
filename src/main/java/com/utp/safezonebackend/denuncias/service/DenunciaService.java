@@ -11,6 +11,7 @@ import com.utp.safezonebackend.denuncias.entity.Denuncia;
 import com.utp.safezonebackend.denuncias.enums.NivelRiesgo;
 import com.utp.safezonebackend.denuncias.mapper.DenunciaMapper;
 import com.utp.safezonebackend.denuncias.repository.DenunciaRepository;
+import com.utp.safezonebackend.evidencias.service.EvidenciaService;
 import com.utp.safezonebackend.notificaciones.entity.Notificacion;
 import com.utp.safezonebackend.notificaciones.enums.PrioridadNotificacion;
 import com.utp.safezonebackend.notificaciones.enums.TipoNotificacion;
@@ -32,19 +33,21 @@ public class DenunciaService {
     private final CasoRepository casoRepository;
     private final UsuarioRepository usuarioRepository;
     private final NotificacionRepository notificacionRepository;
-
+    private final EvidenciaService evidenciaService;
     public DenunciaService(
             DenunciaRepository repository,
             DenunciaMapper mapper,
             CasoRepository casoRepository,
             UsuarioRepository usuarioRepository,
-            NotificacionRepository notificacionRepository
+            NotificacionRepository notificacionRepository,
+            EvidenciaService evidenciaService
     ) {
         this.repository = repository;
         this.mapper = mapper;
         this.casoRepository = casoRepository;
         this.usuarioRepository = usuarioRepository;
         this.notificacionRepository = notificacionRepository;
+        this.evidenciaService=evidenciaService;
     }
 
     @Transactional(readOnly = true)
@@ -99,6 +102,9 @@ public class DenunciaService {
         denuncia.setFechaCreacion(ahora);
         denuncia.setFechaActualizacion(ahora);
         Denuncia guardada = repository.save(denuncia);
+        if (request.adjuntos() != null && !request.adjuntos().isEmpty()) {
+            evidenciaService.vincularAEvidencias(request.adjuntos(), casoId, guardada.getId());
+        }
         notificarSiCritica(guardada);
         return mapper.toResponse(guardada);
     }

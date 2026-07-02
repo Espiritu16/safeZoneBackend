@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.UUID;
 
 import com.utp.safezonebackend.usuarios.repository.UsuarioRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -112,7 +113,15 @@ public class EvidenciaService {
         var actualizada = repository.save(evidencia);
         return mapper.toResponse(actualizada);
     }
-
+    @Transactional
+    public void vincularAEvidencias(List<String> evidenciaIds, String casoId, String denunciaId) {
+        List<Evidencia> evidencias = repository.findAllById(evidenciaIds);
+        evidencias.forEach(e -> {
+            e.setCasoId(casoId);
+            e.setDenunciaId(denunciaId);
+        });
+        repository.saveAll(evidencias);
+    }
     public EvidenciaResponse update(String id, ActualizarEvidenciaRequest request) {
         throw new UnsupportedOperationException("Pendiente de implementar");
     }
