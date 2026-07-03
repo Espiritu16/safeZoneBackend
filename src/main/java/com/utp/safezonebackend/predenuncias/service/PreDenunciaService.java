@@ -219,6 +219,9 @@ public class PreDenunciaService {
             OffsetDateTime ahora
     ) {
         if (Boolean.TRUE.equals(request.formalizarAnonima())) {
+            if (!esBlanco(preDenuncia.getVictimaId())) {
+                return preDenuncia.getVictimaId();
+            }
             return crearVictimaProtegida(preDenuncia, actor, ahora).getId();
         }
         if (esBlanco(request.victimaId())) {
