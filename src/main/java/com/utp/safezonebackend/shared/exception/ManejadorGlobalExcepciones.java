@@ -5,6 +5,7 @@ import jakarta.validation.ConstraintViolationException;
 import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -41,6 +42,12 @@ public class ManejadorGlobalExcepciones {
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<RespuestaBasica> manejarConstraint(ConstraintViolationException ex) {
         return ResponseEntity.badRequest().body(new RespuestaBasica(false, ex.getMessage()));
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<RespuestaBasica> manejarJsonInvalido(HttpMessageNotReadableException ex) {
+        return ResponseEntity.badRequest()
+                .body(new RespuestaBasica(false, "Formato de solicitud invalido. Verifique los datos enviados."));
     }
 
     @ExceptionHandler(Exception.class)
