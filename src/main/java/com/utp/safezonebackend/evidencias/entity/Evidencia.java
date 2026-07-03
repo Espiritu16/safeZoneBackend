@@ -22,6 +22,9 @@ public class Evidencia {
     @Column(name = "denuncia_id")
     private String denunciaId;
 
+    @Column(name = "predenuncia_id")
+    private String predenunciaId;
+
     @Column(name = "seguimiento_id")
     private String seguimientoId;
 
@@ -85,6 +88,14 @@ public class Evidencia {
 
     public void setDenunciaId(String denunciaId) {
         this.denunciaId = denunciaId;
+    }
+
+    public String getPredenunciaId() {
+        return predenunciaId;
+    }
+
+    public void setPredenunciaId(String predenunciaId) {
+        this.predenunciaId = predenunciaId;
     }
 
     public String getSeguimientoId() {

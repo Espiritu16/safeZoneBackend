@@ -36,9 +36,10 @@ public class EvidenciaController {
     @GetMapping
     public ResponseEntity<List<EvidenciaResponse>> listar(
             @RequestParam(required = false) String casoId,
-            @RequestParam(required = false) String denunciaId
+            @RequestParam(required = false) String denunciaId,
+            @RequestParam(required = false) String predenunciaId
     ) {
-        return ResponseEntity.ok(service.findAll(casoId, denunciaId));
+        return ResponseEntity.ok(service.findAll(casoId, denunciaId, predenunciaId));
     }
 
     @Operation(summary = "Obtener evidencia por ID")
@@ -63,10 +64,11 @@ public class EvidenciaController {
             @RequestParam("file") MultipartFile file,
             @RequestParam(required = false) String casoId,
             @RequestParam(required = false) String denunciaId,
+            @RequestParam(required = false) String predenunciaId,
             Authentication authentication
     ) {
-        String correo = authentication.getName();
-        return ResponseEntity.ok(service.create(file, casoId, denunciaId, correo));
+        String correo = authentication == null ? null : authentication.getName();
+        return ResponseEntity.ok(service.create(file, casoId, denunciaId, predenunciaId, correo));
     }
 
     @Operation(summary = "Actualizar evidencia")

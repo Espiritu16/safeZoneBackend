@@ -5,6 +5,7 @@ import com.utp.safezonebackend.auditoria.service.AuditoriaService;
 import com.utp.safezonebackend.denuncias.dto.request.CrearDenunciaRequest;
 import com.utp.safezonebackend.denuncias.dto.response.DenunciaResponse;
 import com.utp.safezonebackend.denuncias.service.DenunciaService;
+import com.utp.safezonebackend.evidencias.service.EvidenciaService;
 import com.utp.safezonebackend.predenuncias.dto.request.CrearPreDenunciaRequest;
 import com.utp.safezonebackend.predenuncias.dto.request.DescartarPreDenunciaRequest;
 import com.utp.safezonebackend.predenuncias.dto.request.FormalizarPreDenunciaRequest;
@@ -38,6 +39,7 @@ public class PreDenunciaService {
     private final AuditoriaService auditoriaService;
     private final DenunciaService denunciaService;
     private final PasswordEncoder passwordEncoder;
+    private final EvidenciaService evidenciaService;
 
     public PreDenunciaService(
             PreDenunciaRepository repository,
@@ -45,7 +47,8 @@ public class PreDenunciaService {
             VictimaAliasRepository victimaAliasRepository,
             AuditoriaService auditoriaService,
             DenunciaService denunciaService,
-            PasswordEncoder passwordEncoder
+            PasswordEncoder passwordEncoder,
+            EvidenciaService evidenciaService
     ) {
         this.repository = repository;
         this.usuarioRepository = usuarioRepository;
@@ -53,6 +56,7 @@ public class PreDenunciaService {
         this.auditoriaService = auditoriaService;
         this.denunciaService = denunciaService;
         this.passwordEncoder = passwordEncoder;
+        this.evidenciaService = evidenciaService;
     }
 
     @Transactional
@@ -133,6 +137,7 @@ public class PreDenunciaService {
         validarEnContacto(preDenuncia);
         Usuario actor = obtenerUsuarioAutenticado();
         OffsetDateTime ahora = OffsetDateTime.now();
+        validarDatosFormalizacion(request);
         String victimaId = resolverVictimaFormalizacion(preDenuncia, request, actor, ahora);
         garantizarAliasActivo(victimaId, actor.getId(), ahora);
         DenunciaFormalizada denuncia = resolverDenunciaFormal(preDenuncia, request, victimaId);
@@ -144,8 +149,16 @@ public class PreDenunciaService {
         preDenuncia.setFechaFormalizacion(ahora);
         preDenuncia.setFechaActualizacion(ahora);
         PreDenuncia guardada = repository.save(preDenuncia);
+        evidenciaService.vincularPredenunciaAFormalizacion(guardada.getId(), guardada.getCasoId(), guardada.getDenunciaId());
         auditar("FORMALIZAR_PREDENUNCIA", guardada, "Predenuncia vinculada a denuncia formal");
         return responder(guardada);
+    }
+
+    private void validarDatosFormalizacion(FormalizarPreDenunciaRequest request) {
+        if (request.nivelRiesgo() == null) {
+            throw new ExcepcionNegocio("Debe indicar el nivel de riesgo para crear la denuncia formal");
+        }
+        validarEdadFormalizacion(request.edad());
     }
 
     @Transactional
@@ -249,10 +262,6 @@ public class PreDenunciaService {
         if (!esBlanco(request.denunciaId())) {
             return new DenunciaFormalizada(limpiar(request.denunciaId()), limpiar(request.casoId()));
         }
-        if (request.nivelRiesgo() == null) {
-            throw new ExcepcionNegocio("Debe indicar el nivel de riesgo para crear la denuncia formal");
-        }
-
         DenunciaResponse denuncia = denunciaService.create(new CrearDenunciaRequest(
                 limpiar(request.casoId()),
                 victimaId,
@@ -267,6 +276,12 @@ public class PreDenunciaService {
                 request.edad()
         ));
         return new DenunciaFormalizada(denuncia.id(), denuncia.casoId());
+    }
+
+    private void validarEdadFormalizacion(Integer edad) {
+        if (edad == null || edad <= 0 || edad > 120) {
+            throw new ExcepcionNegocio("Debe indicar una edad valida para formalizar la denuncia");
+        }
     }
 
     private void garantizarAliasActivo(String victimaId, String actorId, OffsetDateTime ahora) {

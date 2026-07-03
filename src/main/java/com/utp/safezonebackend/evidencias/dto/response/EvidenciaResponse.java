@@ -8,5 +8,6 @@ public record EvidenciaResponse(
         String subidoPor,
         String fechaCreacion,
         String casoId,
-        String denunciaId
+        String denunciaId,
+        String predenunciaId
 ) {}

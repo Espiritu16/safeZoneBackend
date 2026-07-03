@@ -7,6 +7,7 @@ import java.util.Map;
 public record VictimaHistorialResponse(
         String victimaId,
         String aliasActivo,
+        List<HistorialItem> casos,
         List<HistorialItem> denuncias,
         List<HistorialItem> citas,
         List<HistorialItem> seguimientos,

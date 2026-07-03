@@ -1,6 +1,8 @@
 package com.utp.safezonebackend.victimas.service;
 
 import com.utp.safezonebackend.shared.exception.RecursoNoEncontradoException;
+import com.utp.safezonebackend.shared.exception.ExcepcionNegocio;
+import com.utp.safezonebackend.usuarios.entity.Usuario;
 import com.utp.safezonebackend.usuarios.repository.UsuarioRepository;
 import com.utp.safezonebackend.victimas.dto.response.VictimaHistorialResponse;
 import com.utp.safezonebackend.victimas.dto.response.VictimaHistorialResponse.HistorialItem;
@@ -17,6 +19,8 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,16 +44,24 @@ public class VictimaHistorialService {
     }
 
     @Transactional(readOnly = true)
+    public VictimaHistorialResponse obtenerHistorialAutenticado() {
+        Usuario usuario = obtenerUsuarioAutenticado();
+        return obtenerPorVictimaId(usuario.getId());
+    }
+
+    @Transactional(readOnly = true)
     public VictimaHistorialResponse obtenerPorVictimaId(String victimaId) {
         if (!usuarioRepository.existsById(victimaId)) {
             throw new RecursoNoEncontradoException("Victima no encontrada con ID: " + victimaId);
         }
         String aliasActivo = obtenerAliasActivo(victimaId);
+        List<HistorialItem> casos = obtenerCasos(victimaId);
         List<HistorialItem> denuncias = obtenerDenuncias(victimaId);
         List<HistorialItem> citas = obtenerCitas(victimaId);
         List<HistorialItem> seguimientos = obtenerSeguimientos(victimaId);
         List<HistorialItem> evidencias = obtenerEvidencias(victimaId);
         List<HistorialItem> lineaTiempo = new ArrayList<>();
+        lineaTiempo.addAll(casos);
         lineaTiempo.addAll(denuncias);
         lineaTiempo.addAll(citas);
         lineaTiempo.addAll(seguimientos);
@@ -59,6 +71,7 @@ public class VictimaHistorialService {
         return new VictimaHistorialResponse(
                 victimaId,
                 aliasActivo,
+                casos,
                 denuncias,
                 citas,
                 seguimientos,
@@ -73,6 +86,48 @@ public class VictimaHistorialService {
                 .findTopByAliasCodigoIgnoreCaseAndActivoTrueOrderByFechaAsignacionDesc(aliasCodigo)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Alias de victima no encontrado"));
         return obtenerPorVictimaId(alias.getVictima().getId());
+    }
+
+    private List<HistorialItem> obtenerCasos(String victimaId) {
+        @SuppressWarnings("unchecked")
+        List<Object[]> rows = entityManager.createNativeQuery("""
+                SELECT id, estado, prioridad, resumen, distrito, fecha_creacion, fecha_actualizacion, fecha_cierre
+                FROM caso
+                WHERE victima_id = :victimaId AND activo = 1
+                ORDER BY fecha_actualizacion DESC
+                """)
+                .setParameter("victimaId", victimaId)
+                .getResultList();
+
+        return rows.stream()
+                .map(row -> item(
+                        "CASO",
+                        str(row[0]),
+                        str(row[0]),
+                        valorO(row[3], "Caso registrado"),
+                        "Distrito: " + valorO(row[4], "No especificado"),
+                        str(row[1]),
+                        fecha(row[6]) != null ? fecha(row[6]) : fecha(row[5]),
+                        Map.of(
+                                "prioridad", valorO(row[2], "N/A"),
+                                "distrito", valorO(row[4], "N/A"),
+                                "fechaCierre", valorO(row[7], "N/A")
+                        )
+                ))
+                .toList();
+    }
+
+    private Usuario obtenerUsuarioAutenticado() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || auth.getName() == null || "anonymousUser".equals(auth.getName())) {
+            throw new ExcepcionNegocio("Usuario no autenticado");
+        }
+        Usuario usuario = usuarioRepository.buscarPorCorreo(auth.getName())
+                .orElseThrow(() -> new ExcepcionNegocio("Usuario no autenticado"));
+        if (!usuario.isActivo()) {
+            throw new ExcepcionNegocio("El usuario no se encuentra habilitado");
+        }
+        return usuario;
     }
 
     private String obtenerAliasActivo(String victimaId) {
@@ -161,12 +216,13 @@ public class VictimaHistorialService {
     private List<HistorialItem> obtenerEvidencias(String victimaId) {
         @SuppressWarnings("unchecked")
         List<Object[]> rows = entityManager.createNativeQuery("""
-                SELECT DISTINCT e.id, e.caso_id, e.nombre_archivo, e.tipo_mime, e.fecha_creacion, e.denuncia_id
+                SELECT DISTINCT e.id, e.caso_id, e.nombre_archivo, e.tipo_mime, e.fecha_creacion, e.denuncia_id, e.predenuncia_id
                 FROM evidencia e
                 LEFT JOIN caso c ON c.id = e.caso_id
                 LEFT JOIN denuncia d ON d.id = e.denuncia_id
+                LEFT JOIN pre_denuncia pd ON pd.id = e.predenuncia_id
                 WHERE e.activo = 1
-                  AND (c.victima_id = :victimaId OR d.victima_id = :victimaId)
+                  AND (c.victima_id = :victimaId OR d.victima_id = :victimaId OR pd.victima_id = :victimaId)
                 ORDER BY e.fecha_creacion DESC
                 """)
                 .setParameter("victimaId", victimaId)
@@ -181,7 +237,11 @@ public class VictimaHistorialService {
                         "Archivo asociado al expediente",
                         str(row[3]),
                         fecha(row[4]),
-                        Map.of("denunciaId", valorO(row[5], "N/A"), "tipoMime", valorO(row[3], "N/A"))
+                        Map.of(
+                                "denunciaId", valorO(row[5], "N/A"),
+                                "predenunciaId", valorO(row[6], "N/A"),
+                                "tipoMime", valorO(row[3], "N/A")
+                        )
                 ))
                 .toList();
     }

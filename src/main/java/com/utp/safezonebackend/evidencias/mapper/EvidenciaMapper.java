@@ -16,7 +16,8 @@ public class EvidenciaMapper {
                 entity.getSubidoPor(),
                 entity.getFechaCreacion().toString(),
                 entity.getCasoId(),
-                entity.getDenunciaId()
+                entity.getDenunciaId(),
+                entity.getPredenunciaId()
         );
     }
 }

@@ -15,6 +15,7 @@ import com.utp.safezonebackend.denuncias.entity.Denuncia;
 import com.utp.safezonebackend.denuncias.enums.NivelRiesgo;
 import com.utp.safezonebackend.denuncias.mapper.DenunciaMapper;
 import com.utp.safezonebackend.denuncias.repository.DenunciaRepository;
+import com.utp.safezonebackend.evidencias.service.EvidenciaService;
 import com.utp.safezonebackend.notificaciones.entity.Notificacion;
 import com.utp.safezonebackend.notificaciones.repository.NotificacionRepository;
 import com.utp.safezonebackend.usuarios.entity.Usuario;
@@ -46,6 +47,9 @@ class DenunciaServiceTest {
 
     @Mock
     private NotificacionRepository notificacionRepository;
+
+    @Mock
+    private EvidenciaService evidenciaService;
 
     @InjectMocks
     private DenunciaService service;
