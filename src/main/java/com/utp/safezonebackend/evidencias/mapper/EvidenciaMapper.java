@@ -13,6 +13,7 @@ public class EvidenciaMapper {
                 entity.getUrlAlmacenamiento(),
                 entity.getNombreArchivo(),
                 entity.getTamanoBytes(),
+                entity.getTipoMime(),
                 entity.getSubidoPor(),
                 entity.getFechaCreacion().toString(),
                 entity.getCasoId(),
