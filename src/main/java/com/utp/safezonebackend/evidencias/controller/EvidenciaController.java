@@ -6,10 +6,12 @@ import com.utp.safezonebackend.evidencias.dto.response.EvidenciaResponse;
 import com.utp.safezonebackend.evidencias.service.EvidenciaService;
 import java.util.List;
 
+import org.springframework.core.io.Resource;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -51,6 +53,21 @@ public class EvidenciaController {
     @GetMapping("/{id}")
     public ResponseEntity<EvidenciaResponse> findById(@PathVariable String id) {
         return ResponseEntity.ok(service.findById(id));
+    }
+
+    @GetMapping("/{id}/archivo")
+    public ResponseEntity<Resource> obtenerArchivo(
+            @PathVariable String id,
+            @RequestParam(defaultValue = "false") boolean download
+    ) {
+        EvidenciaService.ArchivoEvidencia archivo = service.obtenerArchivo(id);
+        ContentDisposition disposition = (download ? ContentDisposition.attachment() : ContentDisposition.inline())
+                .filename(archivo.nombreOriginal())
+                .build();
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(archivo.contentType()))
+                .header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString())
+                .body(archivo.resource());
     }
 
     @Operation(summary = "Crear evidencia")

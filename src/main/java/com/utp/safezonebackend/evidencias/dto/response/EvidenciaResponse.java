@@ -5,6 +5,7 @@ public record EvidenciaResponse(
         String url,
         String nombreOriginal,
         long tamano,
+        String tipoMime,
         String subidoPor,
         String fechaCreacion,
         String casoId,

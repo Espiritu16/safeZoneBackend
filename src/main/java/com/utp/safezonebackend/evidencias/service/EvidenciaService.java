@@ -24,6 +24,8 @@ import com.utp.safezonebackend.shared.exception.ExcepcionNegocio;
 import com.utp.safezonebackend.shared.exception.RecursoNoEncontradoException;
 import com.utp.safezonebackend.usuarios.repository.UsuarioRepository;
 import jakarta.transaction.Transactional;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -86,6 +88,23 @@ public class EvidenciaService {
 
     public EvidenciaResponse findById(String id) {
         throw new UnsupportedOperationException("Pendiente de implementar");
+    }
+
+    public ArchivoEvidencia obtenerArchivo(String id) {
+        Evidencia evidencia = repository.findById(id)
+                .filter(Evidencia::isActivo)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Evidencia no encontrada"));
+        String nombreAlmacenado = nombreArchivoAlmacenado(evidencia.getUrlAlmacenamiento());
+        Path baseUploads = Paths.get("uploads").toAbsolutePath().normalize();
+        Path archivo = baseUploads.resolve(nombreAlmacenado).normalize();
+        if (!archivo.startsWith(baseUploads) || !Files.exists(archivo) || !Files.isRegularFile(archivo)) {
+            throw new RecursoNoEncontradoException("Archivo de evidencia no encontrado");
+        }
+        return new ArchivoEvidencia(
+                new FileSystemResource(archivo),
+                evidencia.getNombreArchivo(),
+                resolverContentType(archivo, evidencia.getTipoMime())
+        );
     }
 
     public EvidenciaResponse create(MultipartFile file, String casoId, String denunciaId, String predenunciaId, String correo) {
@@ -235,7 +254,37 @@ public class EvidenciaService {
         return index < 0 ? "" : nombreArchivo.substring(index + 1).toLowerCase(Locale.ROOT);
     }
 
+    private String nombreArchivoAlmacenado(String urlAlmacenamiento) {
+        if (esBlanco(urlAlmacenamiento)) {
+            throw new RecursoNoEncontradoException("Archivo de evidencia no encontrado");
+        }
+        try {
+            String nombre = Paths.get(urlAlmacenamiento).getFileName().toString();
+            if (nombre.isBlank()) {
+                throw new RecursoNoEncontradoException("Archivo de evidencia no encontrado");
+            }
+            return nombre;
+        } catch (InvalidPathException ex) {
+            throw new RecursoNoEncontradoException("Archivo de evidencia no encontrado");
+        }
+    }
+
+    private String resolverContentType(Path archivo, String tipoMime) {
+        if (!esBlanco(tipoMime)) {
+            return tipoMime;
+        }
+        try {
+            String detectado = Files.probeContentType(archivo);
+            return esBlanco(detectado) ? "application/octet-stream" : detectado;
+        } catch (IOException ex) {
+            return "application/octet-stream";
+        }
+    }
+
     private boolean esBlanco(String valor) {
         return valor == null || valor.isBlank();
+    }
+
+    public record ArchivoEvidencia(Resource resource, String nombreOriginal, String contentType) {
     }
 }
