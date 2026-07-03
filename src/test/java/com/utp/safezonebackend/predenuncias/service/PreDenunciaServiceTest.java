@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -256,6 +257,59 @@ class PreDenunciaServiceTest {
         assertThat(usuarioCaptor.getValue().getDni()).startsWith("ALIAS");
         assertThat(usuarioCaptor.getValue().getNombres()).isEqualTo("Victima protegida");
         assertThat(usuarioCaptor.getValue().getRol()).isEqualTo(RolUsuario.VICTIMA);
+    }
+
+    @Test
+    void formalizarAnonimaMantieneVictimaVinculadaSiPredenunciaNacioDesdeSuCuenta() {
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken("admin@safezone.local", "N/A"));
+        PreDenuncia preDenuncia = preDenuncia(EstadoPreDenuncia.EN_CONTACTO);
+        preDenuncia.setVictimaId("victima-1");
+        Usuario admin = usuario("admin-1", RolUsuario.ADMIN);
+        Usuario victima = usuario("victima-1", RolUsuario.VICTIMA);
+        DenunciaResponse denuncia = new DenunciaResponse(
+                "denuncia-1",
+                "caso-1",
+                "victima-1",
+                preDenuncia.getDescripcionHecho(),
+                preDenuncia.getTipoViolencia(),
+                preDenuncia.getFechaIncidente(),
+                preDenuncia.getDistrito(),
+                preDenuncia.getDireccionReferencia(),
+                NivelRiesgo.ALTO,
+                true,
+                null,
+                true,
+                OffsetDateTime.now(),
+                OffsetDateTime.now(),
+                null
+        );
+
+        when(repository.findById("pre-1")).thenReturn(Optional.of(preDenuncia));
+        when(usuarioRepository.buscarPorCorreo("admin@safezone.local")).thenReturn(Optional.of(admin));
+        when(victimaAliasRepository.findTopByVictimaIdAndActivoTrueOrderByFechaAsignacionDesc("victima-1")).thenReturn(Optional.empty());
+        when(usuarioRepository.findById("victima-1")).thenReturn(Optional.of(victima));
+        when(victimaAliasRepository.save(any(VictimaAlias.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(denunciaService.create(any(CrearDenunciaRequest.class))).thenReturn(denuncia);
+        when(repository.save(any(PreDenuncia.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        PreDenunciaResponse response = service.formalizar("pre-1", new FormalizarPreDenunciaRequest(
+                null,
+                null,
+                null,
+                NivelRiesgo.ALTO,
+                true,
+                28
+        ));
+
+        assertThat(response.victimaId()).isEqualTo("victima-1");
+        assertThat(response.denunciaId()).isEqualTo("denuncia-1");
+        assertThat(response.casoId()).isEqualTo("caso-1");
+
+        ArgumentCaptor<CrearDenunciaRequest> denunciaCaptor = ArgumentCaptor.forClass(CrearDenunciaRequest.class);
+        verify(denunciaService).create(denunciaCaptor.capture());
+        assertThat(denunciaCaptor.getValue().victimaId()).isEqualTo("victima-1");
+        assertThat(denunciaCaptor.getValue().anonima()).isTrue();
+        verify(usuarioRepository, never()).save(any(Usuario.class));
     }
 
     private PreDenuncia preDenuncia(EstadoPreDenuncia estado) {
