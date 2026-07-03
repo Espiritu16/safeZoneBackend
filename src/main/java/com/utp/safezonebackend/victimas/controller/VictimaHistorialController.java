@@ -24,6 +24,17 @@ public class VictimaHistorialController {
         this.service = service;
     }
 
+    @Operation(summary = "Obtener mi historial consolidado como víctima autenticada")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Operación exitosa"),
+            @ApiResponse(responseCode = "401", description = "Usuario no autenticado"),
+            @ApiResponse(responseCode = "403", description = "Rol no autorizado")
+    })
+    @GetMapping("/me/historial")
+    public ResponseEntity<VictimaHistorialResponse> obtenerMiHistorial() {
+        return ResponseEntity.ok(service.obtenerHistorialAutenticado());
+    }
+
     @Operation(summary = "Obtener historial consolidado de una víctima")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Operación exitosa"),

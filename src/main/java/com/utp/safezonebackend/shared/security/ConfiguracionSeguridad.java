@@ -50,6 +50,7 @@ public class ConfiguracionSeguridad {
                                 "/v3/api-docs/**"
                         ).permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/predenuncias").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/evidencias").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/usuarios")
                         .hasAnyRole("ADMIN", "RECEPCIONISTA")
                         .requestMatchers(HttpMethod.POST, "/api/usuarios")
@@ -64,6 +65,8 @@ public class ConfiguracionSeguridad {
                         .requestMatchers("/api/panel-principal/**")
                         .hasAnyRole("ADMIN", "RECEPCIONISTA", "PSICOLOGO", "DEFENSOR", "VICTIMA")
                         .requestMatchers(HttpMethod.GET, "/api/predenuncias/mis-registros")
+                        .hasRole("VICTIMA")
+                        .requestMatchers(HttpMethod.GET, "/api/victimas/me/historial")
                         .hasRole("VICTIMA")
                         .requestMatchers("/api/predenuncias/**")
                         .hasAnyRole("ADMIN", "RECEPCIONISTA")

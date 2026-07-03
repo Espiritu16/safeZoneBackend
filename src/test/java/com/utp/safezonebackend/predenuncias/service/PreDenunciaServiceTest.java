@@ -12,6 +12,7 @@ import com.utp.safezonebackend.denuncias.dto.request.CrearDenunciaRequest;
 import com.utp.safezonebackend.denuncias.dto.response.DenunciaResponse;
 import com.utp.safezonebackend.denuncias.enums.NivelRiesgo;
 import com.utp.safezonebackend.denuncias.service.DenunciaService;
+import com.utp.safezonebackend.evidencias.service.EvidenciaService;
 import com.utp.safezonebackend.predenuncias.dto.request.CrearPreDenunciaRequest;
 import com.utp.safezonebackend.predenuncias.dto.request.FormalizarPreDenunciaRequest;
 import com.utp.safezonebackend.predenuncias.dto.response.PreDenunciaResponse;
@@ -58,6 +59,9 @@ class PreDenunciaServiceTest {
 
     @Mock
     private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private EvidenciaService evidenciaService;
 
     @InjectMocks
     private PreDenunciaService service;
@@ -148,7 +152,7 @@ class PreDenunciaServiceTest {
                 null,
                 NivelRiesgo.ALTO,
                 false,
-                null
+                28
         ));
 
         assertThat(response.estado()).isEqualTo(EstadoPreDenuncia.FORMALIZADA);
@@ -173,9 +177,29 @@ class PreDenunciaServiceTest {
                 null,
                 NivelRiesgo.ALTO,
                 false,
-                null
+                28
         ))).isInstanceOf(ExcepcionNegocio.class)
                 .hasMessageContaining("Debe marcar la predenuncia en contacto");
+    }
+
+    @Test
+    void formalizarRechazaEdadVaciaAunqueSeaAnonima() {
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken("admin@safezone.local", "N/A"));
+        PreDenuncia preDenuncia = preDenuncia(EstadoPreDenuncia.EN_CONTACTO);
+        Usuario admin = usuario("admin-1", RolUsuario.ADMIN);
+
+        when(repository.findById("pre-1")).thenReturn(Optional.of(preDenuncia));
+        when(usuarioRepository.buscarPorCorreo("admin@safezone.local")).thenReturn(Optional.of(admin));
+
+        assertThatThrownBy(() -> service.formalizar("pre-1", new FormalizarPreDenunciaRequest(
+                null,
+                null,
+                null,
+                NivelRiesgo.ALTO,
+                true,
+                null
+        ))).isInstanceOf(ExcepcionNegocio.class)
+                .hasMessageContaining("Debe indicar una edad valida");
     }
 
     @Test
@@ -219,7 +243,7 @@ class PreDenunciaServiceTest {
                 null,
                 NivelRiesgo.CRITICO,
                 true,
-                null
+                28
         ));
 
         assertThat(response.estado()).isEqualTo(EstadoPreDenuncia.FORMALIZADA);

@@ -16,6 +16,8 @@ import com.utp.safezonebackend.usuarios.repository.UsuarioRepository;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -66,7 +68,7 @@ public class SeguimientoCasoService {
     @Transactional
     public SeguimientoCasoResponse create(CrearSeguimientoCasoRequest request) {
         validarCasoActivo(request.casoId());
-        Usuario autor = validarAutor(request.autorId());
+        Usuario autor = obtenerAutorAutenticado();
         OffsetDateTime ahora = OffsetDateTime.now();
         SeguimientoCaso seguimiento = new SeguimientoCaso();
         seguimiento.setId(UUID.randomUUID().toString());
@@ -124,10 +126,14 @@ public class SeguimientoCasoService {
         }
     }
 
-    private Usuario validarAutor(String autorId) {
-        Usuario autor = usuarioRepository.findById(autorId)
+    private Usuario obtenerAutorAutenticado() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || auth.getName() == null || "anonymousUser".equals(auth.getName())) {
+            throw new ExcepcionNegocio("Usuario no autenticado");
+        }
+        Usuario autor = usuarioRepository.buscarPorCorreo(auth.getName())
                 .filter(Usuario::isActivo)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Autor no encontrado"));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Usuario autenticado no encontrado"));
         if (autor.getRol() != RolUsuario.PSICOLOGO && autor.getRol() != RolUsuario.DEFENSOR && autor.getRol() != RolUsuario.ADMIN) {
             throw new ExcepcionNegocio("Solo profesionales autorizados pueden registrar seguimientos");
         }
