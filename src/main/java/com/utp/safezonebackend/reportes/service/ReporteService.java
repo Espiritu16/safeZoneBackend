@@ -46,10 +46,8 @@ public class ReporteService {
 
     @Transactional(readOnly = true)
     public ReporteMensualResponse generarMensual(ReporteMensualRequest request) {
-        OffsetDateTime desde = request.fechaDesde() == null
-                ? OffsetDateTime.now().withDayOfMonth(1).toLocalDate().atStartOfDay().atOffset(OffsetDateTime.now().getOffset())
-                : request.fechaDesde();
-        OffsetDateTime hasta = request.fechaHasta() == null ? OffsetDateTime.now() : request.fechaHasta();
+        OffsetDateTime desde = request.fechaDesde();
+        OffsetDateTime hasta = request.fechaHasta();
         String tipoViolencia = limpiar(request.tipoViolencia());
         NivelRiesgo nivelRiesgo = request.nivelRiesgo();
 
@@ -111,8 +109,8 @@ public class ReporteService {
 
             Sheet resumen = workbook.createSheet("Resumen");
             escribirFila(resumen, 0, headerStyle, "Metrica", "Valor");
-            escribirFila(resumen, 1, null, "Desde", reporte.fechaDesde().toString());
-            escribirFila(resumen, 2, null, "Hasta", reporte.fechaHasta().toString());
+            escribirFila(resumen, 1, null, "Desde", reporte.fechaDesde() == null ? "Todos" : reporte.fechaDesde().toString());
+            escribirFila(resumen, 2, null, "Hasta", reporte.fechaHasta() == null ? "Todos" : reporte.fechaHasta().toString());
             escribirFila(resumen, 3, null, "Total denuncias", reporte.totalDenuncias());
             escribirFila(resumen, 4, null, "Total casos", reporte.totalCasos());
             escribirFila(resumen, 5, null, "Total citas", reporte.totalCitas());
@@ -138,7 +136,7 @@ public class ReporteService {
         if (fecha == null) {
             return false;
         }
-        return !fecha.isBefore(desde) && !fecha.isAfter(hasta);
+        return (desde == null || !fecha.isBefore(desde)) && (hasta == null || !fecha.isAfter(hasta));
     }
 
     private OffsetDateTime fechaBase(Denuncia denuncia) {

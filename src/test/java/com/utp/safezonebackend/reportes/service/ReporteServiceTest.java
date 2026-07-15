@@ -73,6 +73,35 @@ class ReporteServiceTest {
     }
 
     @Test
+    void generarMensualSinFechasIncluyeTodoElHistorico() {
+        OffsetDateTime fechaAntigua = OffsetDateTime.parse("2025-01-10T10:00:00-05:00");
+        OffsetDateTime fechaActual = OffsetDateTime.parse("2026-07-10T10:00:00-05:00");
+        when(denunciaRepository.findByActivoTrueOrderByFechaCreacionDesc()).thenReturn(List.of(
+                denuncia("d1", "c1", "FISICA", NivelRiesgo.CRITICO, "Lima", fechaAntigua),
+                denuncia("d2", "c2", "PSICOLOGICA", NivelRiesgo.ALTO, "Comas", fechaActual)
+        ));
+        when(casoRepository.findByActivoTrueOrderByFechaCreacionDesc()).thenReturn(List.of(
+                caso("c1", EstadoCaso.EN_ATENCION, PrioridadCaso.CRITICA),
+                caso("c2", EstadoCaso.REGISTRADO, PrioridadCaso.ALTA)
+        ));
+        when(citaRepository.findByActivoTrueOrderByFechaInicioDesc()).thenReturn(List.of(
+                cita("c1", EstadoCita.ATENDIDA, fechaAntigua),
+                cita("c2", EstadoCita.CANCELADA, fechaActual)
+        ));
+
+        ReporteMensualResponse response = service.generarMensual(new ReporteMensualRequest(
+                null,
+                null,
+                null,
+                null
+        ));
+
+        assertThat(response.totalDenuncias()).isEqualTo(2);
+        assertThat(response.totalCasos()).isEqualTo(2);
+        assertThat(response.totalCitas()).isEqualTo(2);
+    }
+
+    @Test
     void generarExcelMensualDevuelveArchivoXlsx() {
         OffsetDateTime desde = OffsetDateTime.parse("2026-07-01T00:00:00-05:00");
         OffsetDateTime hasta = OffsetDateTime.parse("2026-07-31T23:59:59-05:00");
