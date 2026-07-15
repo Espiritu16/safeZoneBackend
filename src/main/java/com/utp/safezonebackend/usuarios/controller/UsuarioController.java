@@ -2,6 +2,7 @@ package com.utp.safezonebackend.usuarios.controller;
 
 import com.utp.safezonebackend.usuarios.dto.request.CrearUsuarioRequest;
 import com.utp.safezonebackend.usuarios.dto.request.ActualizarUsuarioRequest;
+import com.utp.safezonebackend.usuarios.dto.request.CambiarContrasenaRequest;
 import com.utp.safezonebackend.usuarios.dto.response.UsuarioResponse;
 import com.utp.safezonebackend.usuarios.service.UsuarioService;
 import jakarta.validation.Valid;
@@ -39,6 +40,31 @@ public class UsuarioController {
     @GetMapping
     public ResponseEntity<List<UsuarioResponse>> findAll() {
         return ResponseEntity.ok(service.findAll());
+    }
+
+    @Operation(summary = "Obtener usuario autenticado")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Operacion exitosa"),
+        @ApiResponse(responseCode = "401", description = "Usuario no autenticado"),
+        @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    @GetMapping("/me")
+    public ResponseEntity<UsuarioResponse> obtenerMiPerfil() {
+        return ResponseEntity.ok(service.obtenerPerfilAutenticado());
+    }
+
+    @Operation(summary = "Cambiar contrasena del usuario autenticado")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Contrasena actualizada"),
+        @ApiResponse(responseCode = "400", description = "Solicitud invalida"),
+        @ApiResponse(responseCode = "401", description = "Usuario no autenticado"),
+        @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    @PatchMapping("/me/contrasena")
+    public ResponseEntity<UsuarioResponse> cambiarMiContrasena(
+            @Valid @RequestBody CambiarContrasenaRequest request
+    ) {
+        return ResponseEntity.ok(service.cambiarContrasenaAutenticado(request));
     }
 
     @Operation(summary = "Obtener usuario por ID")

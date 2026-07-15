@@ -8,6 +8,20 @@ import org.springframework.stereotype.Component;
 public class CitaMapper {
 
     public CitaResponse toResponse(Cita entity) {
-        return new CitaResponse();
+        return new CitaResponse(
+                entity.getId(),
+                entity.getCasoId(),
+                entity.getVictimaId(),
+                entity.getEspecialistaId(),
+                entity.getTipoCita(),
+                entity.getFechaInicio(),
+                entity.getFechaFin(),
+                entity.getEstado(),
+                entity.getMotivoCancelacion(),
+                entity.getObservaciones(),
+                entity.isActivo(),
+                entity.getFechaCreacion(),
+                entity.getFechaActualizacion()
+        );
     }
 }

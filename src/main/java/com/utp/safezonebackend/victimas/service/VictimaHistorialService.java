@@ -165,7 +165,7 @@ public class VictimaHistorialService {
     private List<HistorialItem> obtenerCitas(String victimaId) {
         @SuppressWarnings("unchecked")
         List<Object[]> rows = entityManager.createNativeQuery("""
-                SELECT id, caso_id, tipo_cita, estado, observaciones, fecha_inicio
+                SELECT id, caso_id, tipo_cita, estado, observaciones, fecha_inicio, fecha_fin
                 FROM cita
                 WHERE victima_id = :victimaId AND activo = 1
                 ORDER BY fecha_inicio DESC
@@ -182,7 +182,12 @@ public class VictimaHistorialService {
                         str(row[4]),
                         str(row[3]),
                         fecha(row[5]),
-                        Map.of("tipoCita", valorO(row[2], "N/A"))
+                        Map.of(
+                                "tipoCita", valorO(row[2], "N/A"),
+                                "fechaInicio", valorO(row[5], "N/A"),
+                                "fechaFin", valorO(row[6], "N/A"),
+                                "observaciones", valorO(row[4], "N/A")
+                        )
                 ))
                 .toList();
     }
@@ -216,7 +221,7 @@ public class VictimaHistorialService {
     private List<HistorialItem> obtenerEvidencias(String victimaId) {
         @SuppressWarnings("unchecked")
         List<Object[]> rows = entityManager.createNativeQuery("""
-                SELECT DISTINCT e.id, e.caso_id, e.nombre_archivo, e.tipo_mime, e.fecha_creacion, e.denuncia_id, e.predenuncia_id
+                SELECT DISTINCT e.id, e.caso_id, e.nombre_archivo, e.tipo_mime, e.fecha_creacion, e.denuncia_id, e.predenuncia_id, e.tamano_bytes
                 FROM evidencia e
                 LEFT JOIN caso c ON c.id = e.caso_id
                 LEFT JOIN denuncia d ON d.id = e.denuncia_id
@@ -238,9 +243,11 @@ public class VictimaHistorialService {
                         str(row[3]),
                         fecha(row[4]),
                         Map.of(
+                                "nombreOriginal", valorO(row[2], "N/A"),
                                 "denunciaId", valorO(row[5], "N/A"),
                                 "predenunciaId", valorO(row[6], "N/A"),
-                                "tipoMime", valorO(row[3], "N/A")
+                                "tipoMime", valorO(row[3], "N/A"),
+                                "tamano", valorO(row[7], "0")
                         )
                 ))
                 .toList();

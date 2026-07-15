@@ -19,9 +19,12 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 
+import com.utp.safezonebackend.casos.repository.CasoRepository;
+import com.utp.safezonebackend.denuncias.repository.DenunciaRepository;
 import com.utp.safezonebackend.predenuncias.repository.PreDenunciaRepository;
 import com.utp.safezonebackend.shared.exception.ExcepcionNegocio;
 import com.utp.safezonebackend.shared.exception.RecursoNoEncontradoException;
+import com.utp.safezonebackend.usuarios.enums.RolUsuario;
 import com.utp.safezonebackend.usuarios.repository.UsuarioRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.core.io.FileSystemResource;
@@ -56,16 +59,23 @@ public class EvidenciaService {
     private final EvidenciaMapper mapper;
     private final UsuarioRepository usuarioRepository;
     private final PreDenunciaRepository preDenunciaRepository;
+    private final CasoRepository casoRepository;
+    private final DenunciaRepository denunciaRepository;
+
     public EvidenciaService(
             EvidenciaRepository repository,
             EvidenciaMapper mapper,
             UsuarioRepository usuarioRepository,
-            PreDenunciaRepository preDenunciaRepository
+            PreDenunciaRepository preDenunciaRepository,
+            CasoRepository casoRepository,
+            DenunciaRepository denunciaRepository
     ) {
         this.repository = repository;
         this.mapper = mapper;
         this.usuarioRepository = usuarioRepository;
         this.preDenunciaRepository = preDenunciaRepository;
+        this.casoRepository = casoRepository;
+        this.denunciaRepository = denunciaRepository;
 
     }
 
@@ -91,9 +101,14 @@ public class EvidenciaService {
     }
 
     public ArchivoEvidencia obtenerArchivo(String id) {
+        return obtenerArchivo(id, null);
+    }
+
+    public ArchivoEvidencia obtenerArchivo(String id, String correo) {
         Evidencia evidencia = repository.findById(id)
                 .filter(Evidencia::isActivo)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Evidencia no encontrada"));
+        validarAccesoArchivo(evidencia, correo);
         String nombreAlmacenado = nombreArchivoAlmacenado(evidencia.getUrlAlmacenamiento());
         Path baseUploads = Paths.get("uploads").toAbsolutePath().normalize();
         Path archivo = baseUploads.resolve(nombreAlmacenado).normalize();
@@ -283,6 +298,46 @@ public class EvidenciaService {
 
     private boolean esBlanco(String valor) {
         return valor == null || valor.isBlank();
+    }
+
+    private void validarAccesoArchivo(Evidencia evidencia, String correo) {
+        if (esBlanco(correo)) {
+            return;
+        }
+        var usuario = usuarioRepository.buscarPorCorreo(correo)
+                .filter(u -> u.isActivo())
+                .orElseThrow(() -> new ExcepcionNegocio("Usuario no autenticado"));
+        if (usuario.getRol() != RolUsuario.VICTIMA) {
+            return;
+        }
+        boolean pertenece = perteneceCaso(evidencia.getCasoId(), usuario.getId())
+                || perteneceDenuncia(evidencia.getDenunciaId(), usuario.getId())
+                || pertenecePredenuncia(evidencia.getPredenunciaId(), usuario.getId());
+        if (!pertenece) {
+            throw new ExcepcionNegocio("No tiene permisos para acceder a esta evidencia");
+        }
+    }
+
+    private boolean perteneceCaso(String casoId, String victimaId) {
+        return !esBlanco(casoId)
+                && casoRepository.findByIdAndActivoTrue(casoId)
+                .map(caso -> victimaId.equals(caso.getVictimaId()))
+                .orElse(false);
+    }
+
+    private boolean perteneceDenuncia(String denunciaId, String victimaId) {
+        return !esBlanco(denunciaId)
+                && denunciaRepository.findByIdAndActivoTrue(denunciaId)
+                .map(denuncia -> victimaId.equals(denuncia.getVictimaId()))
+                .orElse(false);
+    }
+
+    private boolean pertenecePredenuncia(String predenunciaId, String victimaId) {
+        return !esBlanco(predenunciaId)
+                && preDenunciaRepository.findById(predenunciaId)
+                .filter(preDenuncia -> preDenuncia.isActivo())
+                .map(preDenuncia -> victimaId.equals(preDenuncia.getVictimaId()))
+                .orElse(false);
     }
 
     public record ArchivoEvidencia(Resource resource, String nombreOriginal, String contentType) {

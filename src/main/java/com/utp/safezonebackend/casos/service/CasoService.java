@@ -9,6 +9,7 @@ import com.utp.safezonebackend.casos.mapper.CasoMapper;
 import com.utp.safezonebackend.casos.repository.CasoRepository;
 import com.utp.safezonebackend.denuncias.enums.NivelRiesgo;
 import com.utp.safezonebackend.denuncias.repository.DenunciaRepository;
+import com.utp.safezonebackend.notificaciones.service.NotificacionService;
 import com.utp.safezonebackend.shared.exception.ExcepcionNegocio;
 import com.utp.safezonebackend.shared.exception.RecursoNoEncontradoException;
 import com.utp.safezonebackend.usuarios.entity.Usuario;
@@ -32,6 +33,7 @@ public class CasoService {
     private final UsuarioRepository usuarioRepository;
     private final VictimaAliasRepository victimaAliasRepository;
     private final DenunciaRepository denunciaRepository;
+    private final NotificacionService notificacionService;
 
     private static final Map<EstadoCaso, EnumSet<EstadoCaso>> TRANSICIONES = new EnumMap<>(EstadoCaso.class);
 
@@ -49,13 +51,15 @@ public class CasoService {
             CasoMapper mapper,
             UsuarioRepository usuarioRepository,
             VictimaAliasRepository victimaAliasRepository,
-            DenunciaRepository denunciaRepository
+            DenunciaRepository denunciaRepository,
+            NotificacionService notificacionService
     ) {
         this.repository = repository;
         this.mapper = mapper;
         this.usuarioRepository = usuarioRepository;
         this.victimaAliasRepository = victimaAliasRepository;
         this.denunciaRepository = denunciaRepository;
+        this.notificacionService = notificacionService;
     }
 
     @Transactional(readOnly = true)
@@ -145,7 +149,11 @@ public class CasoService {
             inactivar(caso);
         }
         caso.setFechaActualizacion(OffsetDateTime.now());
-        return mapper.toResponse(repository.save(caso));
+        Caso guardado = repository.save(caso);
+        if (request.estado() != null && request.estado() != estadoAnterior) {
+            notificacionService.notificarCambioEstadoCaso(guardado.getVictimaId(), guardado.getId(), guardado.getEstado().name());
+        }
+        return mapper.toResponse(guardado);
     }
 
     @Transactional

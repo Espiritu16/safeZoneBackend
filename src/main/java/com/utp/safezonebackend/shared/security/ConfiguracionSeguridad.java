@@ -55,6 +55,10 @@ public class ConfiguracionSeguridad {
                         .hasAnyRole("ADMIN", "RECEPCIONISTA")
                         .requestMatchers(HttpMethod.POST, "/api/usuarios")
                         .hasAnyRole("ADMIN", "RECEPCIONISTA")
+                        .requestMatchers(HttpMethod.GET, "/api/usuarios/me")
+                        .hasAnyRole("ADMIN", "RECEPCIONISTA", "PSICOLOGO", "DEFENSOR", "SOPORTE", "VICTIMA")
+                        .requestMatchers(HttpMethod.PATCH, "/api/usuarios/me/contrasena")
+                        .hasAnyRole("ADMIN", "RECEPCIONISTA", "PSICOLOGO", "DEFENSOR", "SOPORTE", "VICTIMA")
                         .requestMatchers(
                                 "/api/auth/refresh-tokens/**",
                                 "/api/usuarios/**",
@@ -70,6 +74,8 @@ public class ConfiguracionSeguridad {
                         .hasRole("VICTIMA")
                         .requestMatchers("/api/predenuncias/**")
                         .hasAnyRole("ADMIN", "RECEPCIONISTA")
+                        .requestMatchers(HttpMethod.GET, "/api/evidencias/*/archivo")
+                        .hasAnyRole("ADMIN", "PSICOLOGO", "DEFENSOR", "VICTIMA")
                         .requestMatchers("/api/casos/**")
                         .hasAnyRole("ADMIN", "RECEPCIONISTA", "PSICOLOGO", "DEFENSOR")
                         // Citas — profesionales y recepcionista

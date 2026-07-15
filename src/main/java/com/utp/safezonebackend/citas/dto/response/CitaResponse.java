@@ -1,4 +1,22 @@
 package com.utp.safezonebackend.citas.dto.response;
 
-public class CitaResponse {
+import com.utp.safezonebackend.citas.enums.EstadoCita;
+import com.utp.safezonebackend.citas.enums.TipoCita;
+import java.time.OffsetDateTime;
+
+public record CitaResponse(
+        String id,
+        String casoId,
+        String victimaId,
+        String especialistaId,
+        TipoCita tipoCita,
+        OffsetDateTime fechaInicio,
+        OffsetDateTime fechaFin,
+        EstadoCita estado,
+        String motivoCancelacion,
+        String observaciones,
+        boolean activo,
+        OffsetDateTime fechaCreacion,
+        OffsetDateTime fechaActualizacion
+) {
 }

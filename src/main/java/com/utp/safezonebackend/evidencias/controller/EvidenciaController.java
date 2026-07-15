@@ -58,9 +58,11 @@ public class EvidenciaController {
     @GetMapping("/{id}/archivo")
     public ResponseEntity<Resource> obtenerArchivo(
             @PathVariable String id,
-            @RequestParam(defaultValue = "false") boolean download
+            @RequestParam(defaultValue = "false") boolean download,
+            Authentication authentication
     ) {
-        EvidenciaService.ArchivoEvidencia archivo = service.obtenerArchivo(id);
+        String correo = authentication == null ? null : authentication.getName();
+        EvidenciaService.ArchivoEvidencia archivo = service.obtenerArchivo(id, correo);
         ContentDisposition disposition = (download ? ContentDisposition.attachment() : ContentDisposition.inline())
                 .filename(archivo.nombreOriginal())
                 .build();

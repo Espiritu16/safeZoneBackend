@@ -8,6 +8,20 @@ import org.springframework.stereotype.Component;
 public class NotificacionMapper {
 
     public NotificacionResponse toResponse(Notificacion entity) {
-        return new NotificacionResponse();
+        return new NotificacionResponse(
+                entity.getId(),
+                entity.getUsuarioId(),
+                entity.getCasoId(),
+                entity.getDenunciaId(),
+                entity.getTipo(),
+                entity.getPrioridad(),
+                entity.getTitulo(),
+                entity.getMensaje(),
+                entity.isLeida(),
+                entity.getFechaLectura(),
+                entity.isActivo(),
+                entity.getFechaCreacion(),
+                entity.getFechaActualizacion()
+        );
     }
 }

@@ -6,6 +6,7 @@ import com.utp.safezonebackend.denuncias.dto.request.CrearDenunciaRequest;
 import com.utp.safezonebackend.denuncias.dto.response.DenunciaResponse;
 import com.utp.safezonebackend.denuncias.service.DenunciaService;
 import com.utp.safezonebackend.evidencias.service.EvidenciaService;
+import com.utp.safezonebackend.notificaciones.service.NotificacionService;
 import com.utp.safezonebackend.predenuncias.dto.request.CrearPreDenunciaRequest;
 import com.utp.safezonebackend.predenuncias.dto.request.DescartarPreDenunciaRequest;
 import com.utp.safezonebackend.predenuncias.dto.request.FormalizarPreDenunciaRequest;
@@ -40,6 +41,7 @@ public class PreDenunciaService {
     private final DenunciaService denunciaService;
     private final PasswordEncoder passwordEncoder;
     private final EvidenciaService evidenciaService;
+    private final NotificacionService notificacionService;
 
     public PreDenunciaService(
             PreDenunciaRepository repository,
@@ -48,7 +50,8 @@ public class PreDenunciaService {
             AuditoriaService auditoriaService,
             DenunciaService denunciaService,
             PasswordEncoder passwordEncoder,
-            EvidenciaService evidenciaService
+            EvidenciaService evidenciaService,
+            NotificacionService notificacionService
     ) {
         this.repository = repository;
         this.usuarioRepository = usuarioRepository;
@@ -57,6 +60,7 @@ public class PreDenunciaService {
         this.denunciaService = denunciaService;
         this.passwordEncoder = passwordEncoder;
         this.evidenciaService = evidenciaService;
+        this.notificacionService = notificacionService;
     }
 
     @Transactional
@@ -127,6 +131,7 @@ public class PreDenunciaService {
         preDenuncia.setFechaActualizacion(ahora);
         PreDenuncia guardada = repository.save(preDenuncia);
         auditar("CONTACTAR_PREDENUNCIA", guardada, "Predenuncia marcada en contacto");
+        notificacionService.notificarPredenunciaEnContacto(guardada.getVictimaId(), guardada.getId());
         return responder(guardada);
     }
 
@@ -151,6 +156,7 @@ public class PreDenunciaService {
         PreDenuncia guardada = repository.save(preDenuncia);
         evidenciaService.vincularPredenunciaAFormalizacion(guardada.getId(), guardada.getCasoId(), guardada.getDenunciaId());
         auditar("FORMALIZAR_PREDENUNCIA", guardada, "Predenuncia vinculada a denuncia formal");
+        notificacionService.notificarPredenunciaFormalizada(guardada.getVictimaId(), guardada.getCasoId(), guardada.getDenunciaId());
         return responder(guardada);
     }
 

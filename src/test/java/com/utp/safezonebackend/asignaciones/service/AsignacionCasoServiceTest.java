@@ -13,6 +13,7 @@ import com.utp.safezonebackend.asignaciones.mapper.AsignacionCasoMapper;
 import com.utp.safezonebackend.asignaciones.repository.AsignacionCasoRepository;
 import com.utp.safezonebackend.casos.entity.Caso;
 import com.utp.safezonebackend.casos.repository.CasoRepository;
+import com.utp.safezonebackend.notificaciones.service.NotificacionService;
 import com.utp.safezonebackend.shared.exception.ExcepcionNegocio;
 import com.utp.safezonebackend.usuarios.entity.Usuario;
 import com.utp.safezonebackend.usuarios.enums.RolUsuario;
@@ -42,6 +43,9 @@ class AsignacionCasoServiceTest {
 
     @Mock
     private UsuarioRepository usuarioRepository;
+
+    @Mock
+    private NotificacionService notificacionService;
 
     @InjectMocks
     private AsignacionCasoService service;

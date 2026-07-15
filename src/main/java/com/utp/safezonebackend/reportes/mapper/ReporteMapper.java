@@ -7,6 +7,6 @@ import org.springframework.stereotype.Component;
 public class ReporteMapper {
 
     public ReporteMensualResponse toResponse() {
-        return new ReporteMensualResponse();
+        throw new UnsupportedOperationException("ReporteMapper no se usa para reportes calculados");
     }
 }

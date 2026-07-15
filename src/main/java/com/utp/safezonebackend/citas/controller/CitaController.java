@@ -4,6 +4,7 @@ import com.utp.safezonebackend.citas.dto.request.CrearCitaRequest;
 import com.utp.safezonebackend.citas.dto.request.ActualizarCitaRequest;
 import com.utp.safezonebackend.citas.dto.response.CitaResponse;
 import com.utp.safezonebackend.citas.service.CitaService;
+import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -46,7 +47,7 @@ public class CitaController {
         @ApiResponse(responseCode = "404", description = "Recurso no encontrado"),
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
-    @GetMapping("/{id}/inactivar")
+    @GetMapping("/{id}")
     public ResponseEntity<CitaResponse> findById(@PathVariable String id) {
         return ResponseEntity.ok(service.findById(id));
     }
@@ -58,7 +59,7 @@ public class CitaController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @PostMapping
-    public ResponseEntity crear(@RequestBody CrearCitaRequest request) {
+    public ResponseEntity<CitaResponse> crear(@Valid @RequestBody CrearCitaRequest request) {
         return ResponseEntity.ok(service.create(request));
     }
 
@@ -69,8 +70,8 @@ public class CitaController {
         @ApiResponse(responseCode = "404", description = "Recurso no encontrado"),
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
-    @PutMapping("/{id}/inactivar")
-    public ResponseEntity actualizar(@PathVariable String id, @RequestBody ActualizarCitaRequest request) {
+    @PutMapping("/{id}")
+    public ResponseEntity<CitaResponse> actualizar(@PathVariable String id, @Valid @RequestBody ActualizarCitaRequest request) {
         return ResponseEntity.ok(service.update(id, request));
     }
 

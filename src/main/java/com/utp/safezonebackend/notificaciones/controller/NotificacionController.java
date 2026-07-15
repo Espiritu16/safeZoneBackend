@@ -4,6 +4,7 @@ import com.utp.safezonebackend.notificaciones.dto.request.CrearNotificacionReque
 import com.utp.safezonebackend.notificaciones.dto.request.ActualizarNotificacionRequest;
 import com.utp.safezonebackend.notificaciones.dto.response.NotificacionResponse;
 import com.utp.safezonebackend.notificaciones.service.NotificacionService;
+import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -36,8 +38,19 @@ public class NotificacionController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @GetMapping
-    public ResponseEntity<List<NotificacionResponse>> findAll() {
-        return ResponseEntity.ok(service.findAll());
+    public ResponseEntity<List<NotificacionResponse>> findAll(@RequestParam(required = false) String usuarioId) {
+        return ResponseEntity.ok(service.findAll(usuarioId));
+    }
+
+    @Operation(summary = "Listar mis notificaciones")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Operacion exitosa"),
+        @ApiResponse(responseCode = "401", description = "Usuario no autenticado"),
+        @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    @GetMapping("/me")
+    public ResponseEntity<List<NotificacionResponse>> listarMisNotificaciones() {
+        return ResponseEntity.ok(service.findAllAutenticado());
     }
 
     @Operation(summary = "Obtener notificacion por ID")
@@ -46,7 +59,7 @@ public class NotificacionController {
         @ApiResponse(responseCode = "404", description = "Recurso no encontrado"),
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
-    @GetMapping("/{id}/inactivar")
+    @GetMapping("/{id}")
     public ResponseEntity<NotificacionResponse> findById(@PathVariable String id) {
         return ResponseEntity.ok(service.findById(id));
     }
@@ -58,7 +71,7 @@ public class NotificacionController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @PostMapping
-    public ResponseEntity crear(@RequestBody CrearNotificacionRequest request) {
+    public ResponseEntity<NotificacionResponse> crear(@Valid @RequestBody CrearNotificacionRequest request) {
         return ResponseEntity.ok(service.create(request));
     }
 
@@ -69,8 +82,8 @@ public class NotificacionController {
         @ApiResponse(responseCode = "404", description = "Recurso no encontrado"),
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
-    @PutMapping("/{id}/inactivar")
-    public ResponseEntity actualizar(@PathVariable String id, @RequestBody ActualizarNotificacionRequest request) {
+    @PutMapping("/{id}")
+    public ResponseEntity<NotificacionResponse> actualizar(@PathVariable String id, @Valid @RequestBody ActualizarNotificacionRequest request) {
         return ResponseEntity.ok(service.update(id, request));
     }
 

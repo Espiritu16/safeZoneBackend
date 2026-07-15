@@ -6,7 +6,9 @@ import com.utp.safezonebackend.asignaciones.dto.response.AsignacionCasoResponse;
 import com.utp.safezonebackend.asignaciones.entity.AsignacionCaso;
 import com.utp.safezonebackend.asignaciones.mapper.AsignacionCasoMapper;
 import com.utp.safezonebackend.asignaciones.repository.AsignacionCasoRepository;
+import com.utp.safezonebackend.casos.entity.Caso;
 import com.utp.safezonebackend.casos.repository.CasoRepository;
+import com.utp.safezonebackend.notificaciones.service.NotificacionService;
 import com.utp.safezonebackend.shared.exception.ExcepcionNegocio;
 import com.utp.safezonebackend.shared.exception.RecursoNoEncontradoException;
 import com.utp.safezonebackend.usuarios.entity.Usuario;
@@ -27,17 +29,20 @@ public class AsignacionCasoService {
     private final AsignacionCasoMapper mapper;
     private final CasoRepository casoRepository;
     private final UsuarioRepository usuarioRepository;
+    private final NotificacionService notificacionService;
 
     public AsignacionCasoService(
             AsignacionCasoRepository repository,
             AsignacionCasoMapper mapper,
             CasoRepository casoRepository,
-            UsuarioRepository usuarioRepository
+            UsuarioRepository usuarioRepository,
+            NotificacionService notificacionService
     ) {
         this.repository = repository;
         this.mapper = mapper;
         this.casoRepository = casoRepository;
         this.usuarioRepository = usuarioRepository;
+        this.notificacionService = notificacionService;
     }
 
     @Transactional(readOnly = true)
@@ -55,7 +60,7 @@ public class AsignacionCasoService {
 
     @Transactional
     public AsignacionCasoResponse create(CrearAsignacionCasoRequest request) {
-        validarCasoActivo(request.casoId());
+        Caso caso = obtenerCasoActivo(request.casoId());
         Usuario profesional = validarProfesional(request.profesionalId(), request.rolProfesional());
 
         if (repository.existsByCasoIdAndProfesionalIdAndRolProfesionalAndActivoTrue(
@@ -79,7 +84,10 @@ public class AsignacionCasoService {
         asignacion.setFechaAsignacion(ahora);
         asignacion.setFechaActualizacion(ahora);
         asignacion.setAsignadoPor(actorId);
-        return mapper.toResponse(repository.save(asignacion));
+        AsignacionCaso guardada = repository.save(asignacion);
+        notificacionService.notificarNuevaAsignacion(guardada.getProfesionalId(), guardada.getCasoId());
+        notificacionService.notificarNuevaAsignacionVictima(caso.getVictimaId(), guardada.getCasoId());
+        return mapper.toResponse(guardada);
     }
 
     @Transactional
@@ -114,10 +122,14 @@ public class AsignacionCasoService {
     }
 
     private void validarCasoActivo(String casoId) {
+        obtenerCasoActivo(casoId);
+    }
+
+    private Caso obtenerCasoActivo(String casoId) {
         if (casoId == null || casoId.isBlank()) {
             throw new ExcepcionNegocio("El caso es obligatorio");
         }
-        casoRepository.findByIdAndActivoTrue(casoId.trim())
+        return casoRepository.findByIdAndActivoTrue(casoId.trim())
                 .orElseThrow(() -> new RecursoNoEncontradoException("Caso no encontrado"));
     }
 

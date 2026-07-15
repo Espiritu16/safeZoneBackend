@@ -3,6 +3,7 @@ package com.utp.safezonebackend.reportes.controller;
 import com.utp.safezonebackend.reportes.dto.request.ReporteMensualRequest;
 import com.utp.safezonebackend.reportes.dto.response.ReporteMensualResponse;
 import com.utp.safezonebackend.reportes.service.ReporteService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -31,7 +32,7 @@ public class ReporteController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
     @PostMapping("/mensual")
-    public ResponseEntity<ReporteMensualResponse> generarMensual(@RequestBody ReporteMensualRequest request) {
+    public ResponseEntity<ReporteMensualResponse> generarMensual(@Valid @RequestBody ReporteMensualRequest request) {
         return ResponseEntity.ok(reporteService.generarMensual(request));
     }
 }

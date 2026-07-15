@@ -14,6 +14,7 @@ import com.utp.safezonebackend.denuncias.dto.response.DenunciaResponse;
 import com.utp.safezonebackend.denuncias.enums.NivelRiesgo;
 import com.utp.safezonebackend.denuncias.service.DenunciaService;
 import com.utp.safezonebackend.evidencias.service.EvidenciaService;
+import com.utp.safezonebackend.notificaciones.service.NotificacionService;
 import com.utp.safezonebackend.predenuncias.dto.request.CrearPreDenunciaRequest;
 import com.utp.safezonebackend.predenuncias.dto.request.FormalizarPreDenunciaRequest;
 import com.utp.safezonebackend.predenuncias.dto.response.PreDenunciaResponse;
@@ -63,6 +64,9 @@ class PreDenunciaServiceTest {
 
     @Mock
     private EvidenciaService evidenciaService;
+
+    @Mock
+    private NotificacionService notificacionService;
 
     @InjectMocks
     private PreDenunciaService service;

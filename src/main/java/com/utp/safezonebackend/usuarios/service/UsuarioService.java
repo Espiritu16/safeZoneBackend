@@ -8,6 +8,7 @@ import com.utp.safezonebackend.shared.exception.ExcepcionNegocio;
 import com.utp.safezonebackend.shared.exception.RecursoNoEncontradoException;
 import com.utp.safezonebackend.usuarios.dto.request.CrearUsuarioRequest;
 import com.utp.safezonebackend.usuarios.dto.request.ActualizarUsuarioRequest;
+import com.utp.safezonebackend.usuarios.dto.request.CambiarContrasenaRequest;
 import com.utp.safezonebackend.usuarios.dto.response.UsuarioResponse;
 import com.utp.safezonebackend.usuarios.entity.Usuario;
 import com.utp.safezonebackend.usuarios.enums.RolUsuario;
@@ -54,6 +55,11 @@ public class UsuarioService {
     @Transactional(readOnly = true)
     public UsuarioResponse findById(String id) {
         return mapper.toResponse(obtenerUsuario(id));
+    }
+
+    @Transactional(readOnly = true)
+    public UsuarioResponse obtenerPerfilAutenticado() {
+        return mapper.toResponse(obtenerUsuarioAutenticado());
     }
 
     @Transactional
@@ -135,6 +141,28 @@ public class UsuarioService {
     }
 
     @Transactional
+    public UsuarioResponse cambiarContrasenaAutenticado(CambiarContrasenaRequest request) {
+        Usuario usuario = obtenerUsuarioAutenticado();
+        if (!passwordEncoder.matches(request.contrasenaActual(), usuario.getContrasenaHash())) {
+            throw new ExcepcionNegocio("La contrasena actual no es correcta");
+        }
+        if (!request.nuevaContrasena().equals(request.confirmarContrasena())) {
+            throw new ExcepcionNegocio("La confirmacion de contrasena no coincide");
+        }
+        if (passwordEncoder.matches(request.nuevaContrasena(), usuario.getContrasenaHash())) {
+            throw new ExcepcionNegocio("La nueva contrasena debe ser diferente a la actual");
+        }
+        configuracionSeguridadService.validarContrasenaSegura(request.nuevaContrasena());
+
+        usuario.setContrasenaHash(passwordEncoder.encode(request.nuevaContrasena()));
+        usuario.setActualizadoPor(usuario.getId());
+        usuario.setFechaActualizacion(OffsetDateTime.now());
+        Usuario guardado = repository.save(usuario);
+        auditarCambio("CAMBIO_CONTRASENA_PROPIA", guardado.getId(), guardado, null, resumenUsuario(guardado));
+        return mapper.toResponse(guardado);
+    }
+
+    @Transactional
     public void inactivar(String id) {
         Usuario usuario = obtenerUsuario(id);
         Usuario actor = obtenerActorActual();
@@ -171,6 +199,16 @@ public class UsuarioService {
             return null;
         }
         return repository.buscarPorCorreo(auth.getName()).orElse(null);
+    }
+
+    private Usuario obtenerUsuarioAutenticado() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || auth.getName() == null || "anonymousUser".equals(auth.getName())) {
+            throw new ExcepcionNegocio("Usuario no autenticado");
+        }
+        return repository.buscarPorCorreo(auth.getName())
+                .filter(Usuario::isActivo)
+                .orElseThrow(() -> new ExcepcionNegocio("Usuario no autenticado"));
     }
 
     private void auditarCambio(String accion, String entidadId, Usuario actor, Map<String, Object> antes, Map<String, Object> despues) {

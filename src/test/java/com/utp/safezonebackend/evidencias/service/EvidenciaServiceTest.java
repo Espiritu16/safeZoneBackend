@@ -3,6 +3,8 @@ package com.utp.safezonebackend.evidencias.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
+import com.utp.safezonebackend.casos.repository.CasoRepository;
+import com.utp.safezonebackend.denuncias.repository.DenunciaRepository;
 import com.utp.safezonebackend.evidencias.entity.Evidencia;
 import com.utp.safezonebackend.evidencias.mapper.EvidenciaMapper;
 import com.utp.safezonebackend.evidencias.repository.EvidenciaRepository;
@@ -30,6 +32,12 @@ class EvidenciaServiceTest {
     @Mock
     private PreDenunciaRepository preDenunciaRepository;
 
+    @Mock
+    private CasoRepository casoRepository;
+
+    @Mock
+    private DenunciaRepository denunciaRepository;
+
     private final Path uploadsDir = Path.of("uploads");
 
     @AfterEach
@@ -53,7 +61,9 @@ class EvidenciaServiceTest {
                 repository,
                 new EvidenciaMapper(),
                 usuarioRepository,
-                preDenunciaRepository
+                preDenunciaRepository,
+                casoRepository,
+                denunciaRepository
         );
 
         EvidenciaService.ArchivoEvidencia archivo = service.obtenerArchivo("evidencia-1");
