@@ -4,6 +4,9 @@ import com.utp.safezonebackend.reportes.dto.request.ReporteMensualRequest;
 import com.utp.safezonebackend.reportes.dto.response.ReporteMensualResponse;
 import com.utp.safezonebackend.reportes.service.ReporteService;
 import jakarta.validation.Valid;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -34,5 +37,23 @@ public class ReporteController {
     @PostMapping("/mensual")
     public ResponseEntity<ReporteMensualResponse> generarMensual(@Valid @RequestBody ReporteMensualRequest request) {
         return ResponseEntity.ok(reporteService.generarMensual(request));
+    }
+
+    @Operation(summary = "Generar reporte mensual en Excel")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Archivo generado"),
+        @ApiResponse(responseCode = "400", description = "Solicitud invalida"),
+        @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    @PostMapping("/mensual/excel")
+    public ResponseEntity<byte[]> generarMensualExcel(@Valid @RequestBody ReporteMensualRequest request) {
+        byte[] archivo = reporteService.generarExcelMensual(request);
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment()
+                        .filename("reporte-safezone.xlsx")
+                        .build()
+                        .toString())
+                .body(archivo);
     }
 }

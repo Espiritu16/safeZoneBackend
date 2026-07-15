@@ -52,8 +52,8 @@ class ReporteServiceTest {
                 caso("c2", EstadoCaso.REGISTRADO, PrioridadCaso.ALTA)
         ));
         when(citaRepository.findByActivoTrueOrderByFechaInicioDesc()).thenReturn(List.of(
-                cita(EstadoCita.ATENDIDA, desde.plusDays(3)),
-                cita(EstadoCita.CANCELADA, desde.plusDays(4))
+                cita("c1", EstadoCita.ATENDIDA, desde.plusDays(3)),
+                cita("c2", EstadoCita.CANCELADA, desde.plusDays(4))
         ));
 
         ReporteMensualResponse response = service.generarMensual(new ReporteMensualRequest(
@@ -67,8 +67,35 @@ class ReporteServiceTest {
         assertThat(response.porTipoViolencia()).containsEntry("FISICA", 1L);
         assertThat(response.porNivelRiesgo()).containsEntry(NivelRiesgo.CRITICO, 1L);
         assertThat(response.porDistrito()).containsEntry("Lima", 1L);
-        assertThat(response.totalCitas()).isEqualTo(2);
+        assertThat(response.totalCitas()).isEqualTo(1);
         assertThat(response.citasAtendidas()).isEqualTo(1);
+        assertThat(response.citasCanceladas()).isZero();
+    }
+
+    @Test
+    void generarExcelMensualDevuelveArchivoXlsx() {
+        OffsetDateTime desde = OffsetDateTime.parse("2026-07-01T00:00:00-05:00");
+        OffsetDateTime hasta = OffsetDateTime.parse("2026-07-31T23:59:59-05:00");
+        when(denunciaRepository.findByActivoTrueOrderByFechaCreacionDesc()).thenReturn(List.of(
+                denuncia("d1", "c1", "FISICA", NivelRiesgo.CRITICO, "Lima", desde.plusDays(1))
+        ));
+        when(casoRepository.findByActivoTrueOrderByFechaCreacionDesc()).thenReturn(List.of(
+                caso("c1", EstadoCaso.EN_ATENCION, PrioridadCaso.CRITICA)
+        ));
+        when(citaRepository.findByActivoTrueOrderByFechaInicioDesc()).thenReturn(List.of(
+                cita("c1", EstadoCita.ATENDIDA, desde.plusDays(3))
+        ));
+
+        byte[] archivo = service.generarExcelMensual(new ReporteMensualRequest(
+                desde,
+                hasta,
+                "FISICA",
+                NivelRiesgo.CRITICO
+        ));
+
+        assertThat(archivo).isNotEmpty();
+        assertThat(archivo[0]).isEqualTo((byte) 'P');
+        assertThat(archivo[1]).isEqualTo((byte) 'K');
     }
 
     private Denuncia denuncia(String id, String casoId, String tipo, NivelRiesgo riesgo, String distrito, OffsetDateTime fecha) {
@@ -93,8 +120,9 @@ class ReporteServiceTest {
         return caso;
     }
 
-    private Cita cita(EstadoCita estado, OffsetDateTime fechaInicio) {
+    private Cita cita(String casoId, EstadoCita estado, OffsetDateTime fechaInicio) {
         Cita cita = new Cita();
+        cita.setCasoId(casoId);
         cita.setEstado(estado);
         cita.setFechaInicio(fechaInicio);
         cita.setActivo(true);
