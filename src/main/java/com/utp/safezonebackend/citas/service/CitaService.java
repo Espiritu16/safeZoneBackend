@@ -15,10 +15,14 @@ import com.utp.safezonebackend.citas.repository.CitaRepository;
 import com.utp.safezonebackend.notificaciones.service.NotificacionService;
 import com.utp.safezonebackend.shared.exception.ExcepcionNegocio;
 import com.utp.safezonebackend.shared.exception.RecursoNoEncontradoException;
+import com.utp.safezonebackend.usuarios.entity.Usuario;
 import com.utp.safezonebackend.usuarios.enums.RolUsuario;
+import com.utp.safezonebackend.usuarios.repository.UsuarioRepository;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +33,7 @@ public class CitaService {
     private final CitaMapper mapper;
     private final CasoRepository casoRepository;
     private final AsignacionCasoRepository asignacionCasoRepository;
+    private final UsuarioRepository usuarioRepository;
     private final NotificacionService notificacionService;
 
     public CitaService(
@@ -36,25 +41,29 @@ public class CitaService {
             CitaMapper mapper,
             CasoRepository casoRepository,
             AsignacionCasoRepository asignacionCasoRepository,
+            UsuarioRepository usuarioRepository,
             NotificacionService notificacionService
     ) {
         this.repository = repository;
         this.mapper = mapper;
         this.casoRepository = casoRepository;
         this.asignacionCasoRepository = asignacionCasoRepository;
+        this.usuarioRepository = usuarioRepository;
         this.notificacionService = notificacionService;
     }
 
     @Transactional(readOnly = true)
     public List<CitaResponse> findAll() {
-        return repository.findByActivoTrueOrderByFechaInicioDesc().stream()
+        return listarCitasVisibles().stream()
                 .map(mapper::toResponse)
                 .toList();
     }
 
     @Transactional(readOnly = true)
     public CitaResponse findById(String id) {
-        return mapper.toResponse(obtenerActiva(id));
+        Cita cita = obtenerActiva(id);
+        validarAccesoCita(cita);
+        return mapper.toResponse(cita);
     }
 
     @Transactional
@@ -92,6 +101,7 @@ public class CitaService {
     @Transactional
     public CitaResponse update(String id, ActualizarCitaRequest request) {
         Cita cita = obtenerActiva(id);
+        validarAccesoCita(cita);
         TipoCita tipo = request.tipoCita() == null ? cita.getTipoCita() : request.tipoCita();
         OffsetDateTime fechaInicio = request.fechaInicio() == null ? cita.getFechaInicio() : request.fechaInicio();
         OffsetDateTime fechaFin = fechaFin(fechaInicio, request.fechaFin() == null ? cita.getFechaFin() : request.fechaFin());
@@ -128,6 +138,7 @@ public class CitaService {
     @Transactional
     public void inactivar(String id) {
         Cita cita = obtenerActiva(id);
+        validarAccesoCita(cita);
         cita.setActivo(false);
         cita.setEstado(EstadoCita.CANCELADA);
         cita.setFechaInactivacion(OffsetDateTime.now());
@@ -138,6 +149,43 @@ public class CitaService {
     private Cita obtenerActiva(String id) {
         return repository.findByIdAndActivoTrue(id)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Cita no encontrada"));
+    }
+
+    private List<Cita> listarCitasVisibles() {
+        Usuario actor = obtenerActorActual();
+        if (actor == null || actor.getRol() == RolUsuario.ADMIN || actor.getRol() == RolUsuario.RECEPCIONISTA) {
+            return repository.findByActivoTrueOrderByFechaInicioDesc();
+        }
+        if (actor.getRol() == RolUsuario.PSICOLOGO || actor.getRol() == RolUsuario.DEFENSOR) {
+            return repository.findByEspecialistaIdAndActivoTrueOrderByFechaInicioDesc(actor.getId());
+        }
+        if (actor.getRol() == RolUsuario.VICTIMA) {
+            return repository.findByVictimaIdAndActivoTrue(actor.getId());
+        }
+        return List.of();
+    }
+
+    private void validarAccesoCita(Cita cita) {
+        Usuario actor = obtenerActorActual();
+        if (actor == null || actor.getRol() == RolUsuario.ADMIN || actor.getRol() == RolUsuario.RECEPCIONISTA) {
+            return;
+        }
+        if ((actor.getRol() == RolUsuario.PSICOLOGO || actor.getRol() == RolUsuario.DEFENSOR)
+                && actor.getId().equals(cita.getEspecialistaId())) {
+            return;
+        }
+        if (actor.getRol() == RolUsuario.VICTIMA && actor.getId().equals(cita.getVictimaId())) {
+            return;
+        }
+        throw new RecursoNoEncontradoException("Cita no encontrada");
+    }
+
+    private Usuario obtenerActorActual() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || auth.getName() == null || "anonymousUser".equals(auth.getName())) {
+            return null;
+        }
+        return usuarioRepository.buscarPorCorreo(auth.getName()).orElse(null);
     }
 
     private void validarDisponibilidad(String especialistaId, OffsetDateTime fechaInicio, OffsetDateTime fechaFin, String citaActualId) {

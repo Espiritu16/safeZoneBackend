@@ -50,12 +50,15 @@ public class AsignacionCasoService {
         List<AsignacionCaso> asignaciones = casoId == null || casoId.isBlank()
                 ? repository.findByActivoTrueOrderByFechaAsignacionDesc()
                 : repository.findByCasoIdAndActivoTrueOrderByFechaAsignacionDesc(casoId.trim());
+        asignaciones = limitarAsignacionesPorRol(asignaciones);
         return asignaciones.stream().map(mapper::toResponse).toList();
     }
 
     @Transactional(readOnly = true)
     public AsignacionCasoResponse findById(String id) {
-        return mapper.toResponse(obtenerActiva(id));
+        AsignacionCaso asignacion = obtenerActiva(id);
+        validarAccesoAsignacion(asignacion);
+        return mapper.toResponse(asignacion);
     }
 
     @Transactional
@@ -174,6 +177,30 @@ public class AsignacionCasoService {
         asignacion.setInactivadoPor(obtenerActorId());
     }
 
+    private List<AsignacionCaso> limitarAsignacionesPorRol(List<AsignacionCaso> asignaciones) {
+        Usuario actor = obtenerActorActual();
+        if (actor == null || actor.getRol() == RolUsuario.ADMIN || actor.getRol() == RolUsuario.RECEPCIONISTA) {
+            return asignaciones;
+        }
+        if (actor.getRol() == RolUsuario.PSICOLOGO || actor.getRol() == RolUsuario.DEFENSOR) {
+            List<String> casoIdsAsignados = repository
+                    .findByProfesionalIdAndActivoTrueOrderByFechaAsignacionDesc(actor.getId())
+                    .stream()
+                    .map(AsignacionCaso::getCasoId)
+                    .distinct()
+                    .toList();
+            return asignaciones.stream().filter(asignacion -> casoIdsAsignados.contains(asignacion.getCasoId())).toList();
+        }
+        return List.of();
+    }
+
+    private void validarAccesoAsignacion(AsignacionCaso asignacion) {
+        if (!limitarAsignacionesPorRol(List.of(asignacion)).isEmpty()) {
+            return;
+        }
+        throw new RecursoNoEncontradoException("Asignacion de caso no encontrada");
+    }
+
     private String obtenerActorId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || auth.getName() == null) {
@@ -182,5 +209,13 @@ public class AsignacionCasoService {
         return usuarioRepository.buscarPorCorreo(auth.getName())
                 .map(Usuario::getId)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Usuario autenticado no encontrado"));
+    }
+
+    private Usuario obtenerActorActual() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || auth.getName() == null || "anonymousUser".equals(auth.getName())) {
+            return null;
+        }
+        return usuarioRepository.buscarPorCorreo(auth.getName()).orElse(null);
     }
 }

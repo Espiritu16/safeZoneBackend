@@ -15,6 +15,8 @@ public interface CasoRepository extends JpaRepository<Caso, String> {
 
     List<Caso> findByActivoTrueOrderByFechaCreacionDesc();
 
+    List<Caso> findByIdInAndActivoTrueOrderByFechaCreacionDesc(List<String> ids);
+
     List<Caso> findByVictimaIdAndActivoTrueOrderByFechaCreacionDesc(String victimaId);
 
     List<Caso> findByEstadoAndActivoTrueOrderByFechaCreacionDesc(EstadoCaso estado);

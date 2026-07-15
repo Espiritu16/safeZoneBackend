@@ -11,6 +11,10 @@ public interface AsignacionCasoRepository extends JpaRepository<AsignacionCaso, 
 
     List<AsignacionCaso> findByCasoIdAndActivoTrueOrderByFechaAsignacionDesc(String casoId);
 
+    List<AsignacionCaso> findByCasoIdInAndActivoTrueOrderByFechaAsignacionDesc(List<String> casoIds);
+
+    List<AsignacionCaso> findByProfesionalIdAndActivoTrueOrderByFechaAsignacionDesc(String profesionalId);
+
     Optional<AsignacionCaso> findByIdAndActivoTrue(String id);
 
     Optional<AsignacionCaso> findTopByCasoIdAndRolProfesionalAndActivoTrueOrderByFechaAsignacionDesc(

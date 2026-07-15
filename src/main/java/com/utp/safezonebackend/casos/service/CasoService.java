@@ -1,5 +1,7 @@
 package com.utp.safezonebackend.casos.service;
 
+import com.utp.safezonebackend.asignaciones.entity.AsignacionCaso;
+import com.utp.safezonebackend.asignaciones.repository.AsignacionCasoRepository;
 import com.utp.safezonebackend.casos.dto.request.CrearCasoRequest;
 import com.utp.safezonebackend.casos.dto.request.ActualizarCasoRequest;
 import com.utp.safezonebackend.casos.dto.response.CasoResponse;
@@ -13,6 +15,7 @@ import com.utp.safezonebackend.notificaciones.service.NotificacionService;
 import com.utp.safezonebackend.shared.exception.ExcepcionNegocio;
 import com.utp.safezonebackend.shared.exception.RecursoNoEncontradoException;
 import com.utp.safezonebackend.usuarios.entity.Usuario;
+import com.utp.safezonebackend.usuarios.enums.RolUsuario;
 import com.utp.safezonebackend.usuarios.repository.UsuarioRepository;
 import com.utp.safezonebackend.victimas.entity.VictimaAlias;
 import com.utp.safezonebackend.victimas.repository.VictimaAliasRepository;
@@ -22,6 +25,8 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +36,7 @@ public class CasoService {
     private final CasoRepository repository;
     private final CasoMapper mapper;
     private final UsuarioRepository usuarioRepository;
+    private final AsignacionCasoRepository asignacionCasoRepository;
     private final VictimaAliasRepository victimaAliasRepository;
     private final DenunciaRepository denunciaRepository;
     private final NotificacionService notificacionService;
@@ -50,6 +56,7 @@ public class CasoService {
             CasoRepository repository,
             CasoMapper mapper,
             UsuarioRepository usuarioRepository,
+            AsignacionCasoRepository asignacionCasoRepository,
             VictimaAliasRepository victimaAliasRepository,
             DenunciaRepository denunciaRepository,
             NotificacionService notificacionService
@@ -57,6 +64,7 @@ public class CasoService {
         this.repository = repository;
         this.mapper = mapper;
         this.usuarioRepository = usuarioRepository;
+        this.asignacionCasoRepository = asignacionCasoRepository;
         this.victimaAliasRepository = victimaAliasRepository;
         this.denunciaRepository = denunciaRepository;
         this.notificacionService = notificacionService;
@@ -64,7 +72,7 @@ public class CasoService {
 
     @Transactional(readOnly = true)
     public List<CasoResponse> findAll() {
-        return repository.findByActivoTrueOrderByFechaCreacionDesc().stream()
+        return limitarCasosPorRol(repository.findByActivoTrueOrderByFechaCreacionDesc()).stream()
                 .map(mapper::toResponse)
                 .toList();
     }
@@ -99,12 +107,15 @@ public class CasoService {
                     .toList();
             casos = casos.stream().filter(caso -> casosConRiesgo.contains(caso.getId())).toList();
         }
+        casos = limitarCasosPorRol(casos);
         return casos.stream().map(mapper::toResponse).toList();
     }
 
     @Transactional(readOnly = true)
     public CasoResponse findById(String id) {
-        return mapper.toResponse(obtenerActivo(id));
+        Caso caso = obtenerActivo(id);
+        validarAccesoCaso(caso);
+        return mapper.toResponse(caso);
     }
 
     @Transactional
@@ -128,6 +139,7 @@ public class CasoService {
     @Transactional
     public CasoResponse update(String id, ActualizarCasoRequest request) {
         Caso caso = obtenerActivo(id);
+        validarAccesoCaso(caso);
         EstadoCaso estadoAnterior = caso.getEstado();
         if (request.resumen() != null) {
             caso.setResumen(limpiar(request.resumen()));
@@ -159,6 +171,7 @@ public class CasoService {
     @Transactional
     public void inactivar(String id) {
         Caso caso = obtenerActivo(id);
+        validarAccesoCaso(caso);
         inactivar(caso);
         repository.save(caso);
     }
@@ -172,6 +185,41 @@ public class CasoService {
         usuarioRepository.findById(victimaId)
                 .filter(Usuario::isActivo)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Victima no encontrada"));
+    }
+
+    private List<Caso> limitarCasosPorRol(List<Caso> casos) {
+        Usuario actor = obtenerActorActual();
+        if (actor == null || actor.getRol() == RolUsuario.ADMIN || actor.getRol() == RolUsuario.RECEPCIONISTA) {
+            return casos;
+        }
+        if (actor.getRol() == RolUsuario.PSICOLOGO || actor.getRol() == RolUsuario.DEFENSOR) {
+            List<String> casoIdsAsignados = asignacionCasoRepository
+                    .findByProfesionalIdAndActivoTrueOrderByFechaAsignacionDesc(actor.getId())
+                    .stream()
+                    .map(AsignacionCaso::getCasoId)
+                    .distinct()
+                    .toList();
+            return casos.stream().filter(caso -> casoIdsAsignados.contains(caso.getId())).toList();
+        }
+        if (actor.getRol() == RolUsuario.VICTIMA) {
+            return casos.stream().filter(caso -> actor.getId().equals(caso.getVictimaId())).toList();
+        }
+        return List.of();
+    }
+
+    private void validarAccesoCaso(Caso caso) {
+        if (!limitarCasosPorRol(List.of(caso)).isEmpty()) {
+            return;
+        }
+        throw new RecursoNoEncontradoException("Caso no encontrado");
+    }
+
+    private Usuario obtenerActorActual() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || auth.getName() == null || "anonymousUser".equals(auth.getName())) {
+            return null;
+        }
+        return usuarioRepository.buscarPorCorreo(auth.getName()).orElse(null);
     }
 
     private void validarTransicion(EstadoCaso origen, EstadoCaso destino) {

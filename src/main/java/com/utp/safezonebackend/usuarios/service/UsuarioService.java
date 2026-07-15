@@ -3,6 +3,9 @@ package com.utp.safezonebackend.usuarios.service;
 import com.utp.safezonebackend.auditoria.dto.request.RegistroAuditoriaInterna;
 import com.utp.safezonebackend.auditoria.enums.ResultadoAuditoria;
 import com.utp.safezonebackend.auditoria.service.AuditoriaService;
+import com.utp.safezonebackend.asignaciones.entity.AsignacionCaso;
+import com.utp.safezonebackend.asignaciones.repository.AsignacionCasoRepository;
+import com.utp.safezonebackend.casos.repository.CasoRepository;
 import com.utp.safezonebackend.configuracion.service.ConfiguracionSeguridadService;
 import com.utp.safezonebackend.shared.exception.ExcepcionNegocio;
 import com.utp.safezonebackend.shared.exception.RecursoNoEncontradoException;
@@ -14,9 +17,13 @@ import com.utp.safezonebackend.usuarios.entity.Usuario;
 import com.utp.safezonebackend.usuarios.enums.RolUsuario;
 import com.utp.safezonebackend.usuarios.mapper.UsuarioMapper;
 import com.utp.safezonebackend.usuarios.repository.UsuarioRepository;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -32,24 +39,37 @@ public class UsuarioService {
     private final PasswordEncoder passwordEncoder;
     private final AuditoriaService auditoriaService;
     private final ConfiguracionSeguridadService configuracionSeguridadService;
+    private final AsignacionCasoRepository asignacionCasoRepository;
+    private final CasoRepository casoRepository;
 
     public UsuarioService(
             UsuarioRepository repository,
             UsuarioMapper mapper,
             PasswordEncoder passwordEncoder,
             AuditoriaService auditoriaService,
-            ConfiguracionSeguridadService configuracionSeguridadService
+            ConfiguracionSeguridadService configuracionSeguridadService,
+            AsignacionCasoRepository asignacionCasoRepository,
+            CasoRepository casoRepository
     ) {
         this.repository = repository;
         this.mapper = mapper;
         this.passwordEncoder = passwordEncoder;
         this.auditoriaService = auditoriaService;
         this.configuracionSeguridadService = configuracionSeguridadService;
+        this.asignacionCasoRepository = asignacionCasoRepository;
+        this.casoRepository = casoRepository;
     }
 
     @Transactional(readOnly = true)
     public List<UsuarioResponse> findAll() {
-        return repository.findAll().stream().map(mapper::toResponse).toList();
+        Usuario actor = obtenerUsuarioAutenticado();
+        if (actor.getRol() == RolUsuario.ADMIN || actor.getRol() == RolUsuario.RECEPCIONISTA) {
+            return repository.findAll().stream().map(mapper::toResponse).toList();
+        }
+        if (actor.getRol() == RolUsuario.PSICOLOGO || actor.getRol() == RolUsuario.DEFENSOR) {
+            return usuariosVisiblesParaProfesional(actor).stream().map(mapper::toResponse).toList();
+        }
+        return List.of(mapper.toResponse(actor));
     }
 
     @Transactional(readOnly = true)
@@ -209,6 +229,32 @@ public class UsuarioService {
         return repository.buscarPorCorreo(auth.getName())
                 .filter(Usuario::isActivo)
                 .orElseThrow(() -> new ExcepcionNegocio("Usuario no autenticado"));
+    }
+
+    private List<Usuario> usuariosVisiblesParaProfesional(Usuario actor) {
+        Set<String> idsVisibles = new HashSet<>();
+        idsVisibles.add(actor.getId());
+
+        List<String> casoIds = asignacionCasoRepository
+                .findByProfesionalIdAndActivoTrueOrderByFechaAsignacionDesc(actor.getId())
+                .stream()
+                .map(AsignacionCaso::getCasoId)
+                .distinct()
+                .toList();
+        if (!casoIds.isEmpty()) {
+            casoRepository.findByIdInAndActivoTrueOrderByFechaCreacionDesc(casoIds)
+                    .forEach(caso -> idsVisibles.add(caso.getVictimaId()));
+        }
+
+        List<Usuario> usuariosVisibles = new ArrayList<>();
+        usuariosVisibles.addAll(repository.findByRolInAndActivoTrueOrderByNombresAscApellidosAsc(
+                List.of(RolUsuario.PSICOLOGO, RolUsuario.DEFENSOR)
+        ));
+        usuariosVisibles.addAll(repository.findByIdIn(idsVisibles));
+
+        Map<String, Usuario> unicos = new LinkedHashMap<>();
+        usuariosVisibles.forEach(usuario -> unicos.put(usuario.getId(), usuario));
+        return new ArrayList<>(unicos.values());
     }
 
     private void auditarCambio(String accion, String entidadId, Usuario actor, Map<String, Object> antes, Map<String, Object> despues) {

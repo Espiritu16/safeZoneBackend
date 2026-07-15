@@ -52,7 +52,7 @@ public class ConfiguracionSeguridad {
                         .requestMatchers(HttpMethod.POST, "/api/predenuncias").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/evidencias").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/usuarios")
-                        .hasAnyRole("ADMIN", "RECEPCIONISTA")
+                        .hasAnyRole("ADMIN", "RECEPCIONISTA", "PSICOLOGO", "DEFENSOR")
                         .requestMatchers(HttpMethod.POST, "/api/usuarios")
                         .hasAnyRole("ADMIN", "RECEPCIONISTA")
                         .requestMatchers(HttpMethod.GET, "/api/usuarios/me")
@@ -85,6 +85,8 @@ public class ConfiguracionSeguridad {
                         .requestMatchers("/api/victimas/**", "/api/victimasalias/**")
                         .hasAnyRole("ADMIN", "RECEPCIONISTA", "PSICOLOGO", "DEFENSOR")
                         // Denuncias
+                        .requestMatchers(HttpMethod.GET, "/api/denuncias/**")
+                        .hasAnyRole("ADMIN", "RECEPCIONISTA", "PSICOLOGO", "DEFENSOR")
                         .requestMatchers("/api/denuncias/**")
                         .hasAnyRole("ADMIN", "RECEPCIONISTA", "DEFENSOR")
                         // Evidencias
@@ -97,6 +99,8 @@ public class ConfiguracionSeguridad {
                         .requestMatchers("/api/notificaciones/**")
                         .hasAnyRole("ADMIN", "RECEPCIONISTA", "PSICOLOGO", "DEFENSOR", "VICTIMA")
                         // Asignaciones
+                        .requestMatchers(HttpMethod.GET, "/api/asignaciones/**")
+                        .hasAnyRole("ADMIN", "RECEPCIONISTA", "PSICOLOGO", "DEFENSOR")
                         .requestMatchers("/api/asignaciones/**")
                         .hasAnyRole("ADMIN", "RECEPCIONISTA")
                         .anyRequest().authenticated()

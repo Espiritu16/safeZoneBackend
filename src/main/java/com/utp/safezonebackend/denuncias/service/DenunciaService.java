@@ -1,5 +1,7 @@
 package com.utp.safezonebackend.denuncias.service;
 
+import com.utp.safezonebackend.asignaciones.entity.AsignacionCaso;
+import com.utp.safezonebackend.asignaciones.repository.AsignacionCasoRepository;
 import com.utp.safezonebackend.denuncias.dto.request.CrearDenunciaRequest;
 import com.utp.safezonebackend.denuncias.dto.request.ActualizarDenunciaRequest;
 import com.utp.safezonebackend.denuncias.dto.response.DenunciaResponse;
@@ -18,10 +20,13 @@ import com.utp.safezonebackend.notificaciones.enums.TipoNotificacion;
 import com.utp.safezonebackend.notificaciones.repository.NotificacionRepository;
 import com.utp.safezonebackend.shared.exception.RecursoNoEncontradoException;
 import com.utp.safezonebackend.usuarios.entity.Usuario;
+import com.utp.safezonebackend.usuarios.enums.RolUsuario;
 import com.utp.safezonebackend.usuarios.repository.UsuarioRepository;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +37,7 @@ public class DenunciaService {
     private final DenunciaMapper mapper;
     private final CasoRepository casoRepository;
     private final UsuarioRepository usuarioRepository;
+    private final AsignacionCasoRepository asignacionCasoRepository;
     private final NotificacionRepository notificacionRepository;
     private final EvidenciaService evidenciaService;
     public DenunciaService(
@@ -39,6 +45,7 @@ public class DenunciaService {
             DenunciaMapper mapper,
             CasoRepository casoRepository,
             UsuarioRepository usuarioRepository,
+            AsignacionCasoRepository asignacionCasoRepository,
             NotificacionRepository notificacionRepository,
             EvidenciaService evidenciaService
     ) {
@@ -46,20 +53,21 @@ public class DenunciaService {
         this.mapper = mapper;
         this.casoRepository = casoRepository;
         this.usuarioRepository = usuarioRepository;
+        this.asignacionCasoRepository = asignacionCasoRepository;
         this.notificacionRepository = notificacionRepository;
         this.evidenciaService=evidenciaService;
     }
 
     @Transactional(readOnly = true)
     public List<DenunciaResponse> findAll() {
-        return repository.findByActivoTrueOrderByFechaCreacionDesc().stream()
+        return limitarDenunciasPorRol(repository.findByActivoTrueOrderByFechaCreacionDesc()).stream()
                 .map(mapper::toResponse)
                 .toList();
     }
 
     @Transactional(readOnly = true)
     public List<DenunciaResponse> buscar(String victimaId, String casoId, NivelRiesgo nivelRiesgo, String distrito, String tipoViolencia) {
-        return repository.findByActivoTrueOrderByFechaCreacionDesc().stream()
+        return limitarDenunciasPorRol(repository.findByActivoTrueOrderByFechaCreacionDesc()).stream()
                 .filter(denuncia -> victimaId == null || victimaId.isBlank() || victimaId.equals(denuncia.getVictimaId()))
                 .filter(denuncia -> casoId == null || casoId.isBlank() || casoId.equals(denuncia.getCasoId()))
                 .filter(denuncia -> nivelRiesgo == null || nivelRiesgo == denuncia.getNivelRiesgo())
@@ -71,7 +79,9 @@ public class DenunciaService {
 
     @Transactional(readOnly = true)
     public DenunciaResponse findById(String id) {
-        return mapper.toResponse(obtenerActiva(id));
+        Denuncia denuncia = obtenerActiva(id);
+        validarAccesoDenuncia(denuncia);
+        return mapper.toResponse(denuncia);
     }
 
     @Transactional
@@ -112,6 +122,7 @@ public class DenunciaService {
     @Transactional
     public DenunciaResponse update(String id, ActualizarDenunciaRequest request) {
         Denuncia denuncia = obtenerActiva(id);
+        validarAccesoDenuncia(denuncia);
         NivelRiesgo riesgoAnterior = denuncia.getNivelRiesgo();
         if (request.casoId() != null) {
             validarCasoActivo(request.casoId());
@@ -152,6 +163,7 @@ public class DenunciaService {
     @Transactional
     public void inactivar(String id) {
         Denuncia denuncia = obtenerActiva(id);
+        validarAccesoDenuncia(denuncia);
         denuncia.setActivo(false);
         denuncia.setFechaInactivacion(OffsetDateTime.now());
         denuncia.setFechaActualizacion(OffsetDateTime.now());
@@ -172,6 +184,41 @@ public class DenunciaService {
     private void validarCasoActivo(String casoId) {
         casoRepository.findByIdAndActivoTrue(casoId)
                 .orElseThrow(() -> new RecursoNoEncontradoException("Caso no encontrado"));
+    }
+
+    private List<Denuncia> limitarDenunciasPorRol(List<Denuncia> denuncias) {
+        Usuario actor = obtenerActorActual();
+        if (actor == null || actor.getRol() == RolUsuario.ADMIN || actor.getRol() == RolUsuario.RECEPCIONISTA) {
+            return denuncias;
+        }
+        if (actor.getRol() == RolUsuario.PSICOLOGO || actor.getRol() == RolUsuario.DEFENSOR) {
+            List<String> casoIdsAsignados = asignacionCasoRepository
+                    .findByProfesionalIdAndActivoTrueOrderByFechaAsignacionDesc(actor.getId())
+                    .stream()
+                    .map(AsignacionCaso::getCasoId)
+                    .distinct()
+                    .toList();
+            return denuncias.stream().filter(denuncia -> casoIdsAsignados.contains(denuncia.getCasoId())).toList();
+        }
+        if (actor.getRol() == RolUsuario.VICTIMA) {
+            return denuncias.stream().filter(denuncia -> actor.getId().equals(denuncia.getVictimaId())).toList();
+        }
+        return List.of();
+    }
+
+    private void validarAccesoDenuncia(Denuncia denuncia) {
+        if (!limitarDenunciasPorRol(List.of(denuncia)).isEmpty()) {
+            return;
+        }
+        throw new RecursoNoEncontradoException("Denuncia no encontrada");
+    }
+
+    private Usuario obtenerActorActual() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || auth.getName() == null || "anonymousUser".equals(auth.getName())) {
+            return null;
+        }
+        return usuarioRepository.buscarPorCorreo(auth.getName()).orElse(null);
     }
 
     private String crearCasoParaDenuncia(CrearDenunciaRequest request, OffsetDateTime ahora) {

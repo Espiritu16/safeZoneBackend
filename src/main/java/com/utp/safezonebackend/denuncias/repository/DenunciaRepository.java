@@ -16,6 +16,8 @@ public interface DenunciaRepository extends JpaRepository<Denuncia, String> {
 
     List<Denuncia> findByCasoIdAndActivoTrue(String casoId);
 
+    List<Denuncia> findByCasoIdInAndActivoTrueOrderByFechaCreacionDesc(List<String> casoIds);
+
     List<Denuncia> findByNivelRiesgoAndActivoTrue(NivelRiesgo nivelRiesgo);
 
     List<Denuncia> findByCasoIdInAndNivelRiesgoAndActivoTrue(List<String> casoIds, NivelRiesgo nivelRiesgo);

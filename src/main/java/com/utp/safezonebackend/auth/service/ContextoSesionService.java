@@ -50,9 +50,9 @@ public class ContextoSesionService {
 
     private List<String> obtenerModulos(RolUsuario rol) {
         return switch (rol) {
-            case ADMIN -> List.of("usuarios", "auditoria", "configuracion", "reportes", "casos");
+            case ADMIN -> List.of("dashboard", "usuarios", "auditoria", "reportes", "casos", "victimas", "citas", "evidencias", "notificaciones");
             case RECEPCIONISTA -> List.of("predenuncias", "victimas", "denuncias", "casos", "citas");
-            case PSICOLOGO, DEFENSOR -> List.of("casos_asignados", "seguimientos", "citas", "evidencias");
+            case PSICOLOGO, DEFENSOR -> List.of("casos", "victimas", "citas", "evidencias", "notificaciones");
             case VICTIMA -> List.of("mis_denuncias", "mis_casos", "mis_citas", "notificaciones");
         };
     }
@@ -61,13 +61,13 @@ public class ContextoSesionService {
         return switch (rol) {
             case ADMIN -> List.of(
                     "usuarios:leer", "usuarios:crear", "usuarios:actualizar", "usuarios:inactivar",
-                    "roles:administrar", "auditoria:leer", "configuracion:administrar", "reportes:leer", "casos:leer"
+                    "roles:administrar", "auditoria:leer", "reportes:leer", "casos:leer"
             );
             case RECEPCIONISTA -> List.of(
                     "predenuncias:gestionar", "victimas:registrar", "denuncias:formalizar", "casos:crear", "citas:programar"
             );
-            case PSICOLOGO -> List.of("casos_asignados:leer", "seguimientos:registrar", "citas:gestionar", "evidencias:leer");
-            case DEFENSOR -> List.of("casos_asignados:leer", "seguimientos:registrar", "citas:gestionar", "evidencias:gestionar");
+            case PSICOLOGO -> List.of("casos_asignados:leer", "victimas_asignadas:leer", "seguimientos:registrar", "citas:gestionar", "evidencias:leer");
+            case DEFENSOR -> List.of("casos_asignados:leer", "victimas_asignadas:leer", "seguimientos:registrar", "citas:gestionar", "evidencias:gestionar");
             case VICTIMA -> List.of("mis_denuncias:leer", "mis_casos:leer", "mis_citas:leer", "notificaciones:leer");
         };
     }
