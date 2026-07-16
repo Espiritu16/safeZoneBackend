@@ -22,10 +22,10 @@ public final class DistritoNormalizer {
             Map.entry("sjm", "San Juan de Miraflores"),
             Map.entry("santa anita", "Santa Anita"),
             Map.entry("santa fe", "Santa Fe"),
-            Map.entry("lima norte", "Lima Norte"),
-            Map.entry("lima sur", "Lima Sur"),
-            Map.entry("lima este", "Lima Este"),
-            Map.entry("lima centro", "Lima Centro"),
+            Map.entry("lima norte", "Lima"),
+            Map.entry("lima sur", "Lima"),
+            Map.entry("lima este", "Lima"),
+            Map.entry("lima centro", "Lima"),
             Map.entry("comas", "Comas")
     );
 

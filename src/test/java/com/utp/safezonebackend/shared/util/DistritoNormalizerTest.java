@@ -11,6 +11,10 @@ class DistritoNormalizerTest {
         assertThat(DistritoNormalizer.normalizar(" los  olivos ")).isEqualTo("Los Olivos");
         assertThat(DistritoNormalizer.normalizar("Lima Cercado")).isEqualTo("Lima");
         assertThat(DistritoNormalizer.normalizar("cercado de lima")).isEqualTo("Lima");
+        assertThat(DistritoNormalizer.normalizar("Lima Norte")).isEqualTo("Lima");
+        assertThat(DistritoNormalizer.normalizar("lima sur")).isEqualTo("Lima");
+        assertThat(DistritoNormalizer.normalizar("LIMA ESTE")).isEqualTo("Lima");
+        assertThat(DistritoNormalizer.normalizar("lima centro")).isEqualTo("Lima");
         assertThat(DistritoNormalizer.normalizar("santa fe")).isEqualTo("Santa Fe");
         assertThat(DistritoNormalizer.normalizar("VILLA EL SALVADOR")).isEqualTo("Villa El Salvador");
         assertThat(DistritoNormalizer.normalizar("distrito personalizado")).isEqualTo("Distrito Personalizado");
