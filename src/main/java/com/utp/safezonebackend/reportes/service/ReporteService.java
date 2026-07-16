@@ -11,6 +11,7 @@ import com.utp.safezonebackend.citas.repository.CitaRepository;
 import com.utp.safezonebackend.denuncias.entity.Denuncia;
 import com.utp.safezonebackend.denuncias.enums.NivelRiesgo;
 import com.utp.safezonebackend.denuncias.repository.DenunciaRepository;
+import com.utp.safezonebackend.denuncias.util.TipoViolenciaNormalizer;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.OffsetDateTime;
@@ -52,12 +53,12 @@ public class ReporteService {
     public ReporteMensualResponse generarMensual(ReporteMensualRequest request) {
         OffsetDateTime desde = request.fechaDesde();
         OffsetDateTime hasta = request.fechaHasta();
-        String tipoViolencia = limpiar(request.tipoViolencia());
+        String tipoViolencia = TipoViolenciaNormalizer.normalizar(request.tipoViolencia());
         NivelRiesgo nivelRiesgo = request.nivelRiesgo();
 
         List<Denuncia> denuncias = denunciaRepository.findByActivoTrueOrderByFechaCreacionDesc().stream()
                 .filter(denuncia -> dentroDeRango(fechaBase(denuncia), desde, hasta))
-                .filter(denuncia -> tipoViolencia == null || tipoViolencia.equalsIgnoreCase(denuncia.getTipoViolencia()))
+                .filter(denuncia -> tipoViolencia == null || tipoViolencia.equals(TipoViolenciaNormalizer.normalizar(denuncia.getTipoViolencia())))
                 .toList();
 
         List<String> casoIdsFiltradosPorDenuncia = denuncias.stream()
@@ -84,7 +85,7 @@ public class ReporteService {
                 .toList();
 
         Map<String, Long> porTipoViolencia = denuncias.stream()
-                .collect(Collectors.groupingBy(Denuncia::getTipoViolencia, Collectors.counting()));
+                .collect(Collectors.groupingBy(denuncia -> TipoViolenciaNormalizer.etiqueta(denuncia.getTipoViolencia()), Collectors.counting()));
         Map<NivelRiesgo, Long> porNivelRiesgo = casos.stream()
                 .collect(Collectors.groupingBy(caso -> nivelRiesgoDesdePrioridad(caso.getPrioridad()), () -> new EnumMap<>(NivelRiesgo.class), Collectors.counting()));
         Map<String, Long> porDistrito = casos.stream()

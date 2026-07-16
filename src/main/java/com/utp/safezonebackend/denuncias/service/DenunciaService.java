@@ -13,6 +13,7 @@ import com.utp.safezonebackend.denuncias.entity.Denuncia;
 import com.utp.safezonebackend.denuncias.enums.NivelRiesgo;
 import com.utp.safezonebackend.denuncias.mapper.DenunciaMapper;
 import com.utp.safezonebackend.denuncias.repository.DenunciaRepository;
+import com.utp.safezonebackend.denuncias.util.TipoViolenciaNormalizer;
 import com.utp.safezonebackend.evidencias.service.EvidenciaService;
 import com.utp.safezonebackend.notificaciones.entity.Notificacion;
 import com.utp.safezonebackend.notificaciones.enums.PrioridadNotificacion;
@@ -67,12 +68,13 @@ public class DenunciaService {
 
     @Transactional(readOnly = true)
     public List<DenunciaResponse> buscar(String victimaId, String casoId, NivelRiesgo nivelRiesgo, String distrito, String tipoViolencia) {
+        String tipoNormalizado = TipoViolenciaNormalizer.normalizar(tipoViolencia);
         return limitarDenunciasPorRol(repository.findByActivoTrueOrderByFechaCreacionDesc()).stream()
                 .filter(denuncia -> victimaId == null || victimaId.isBlank() || victimaId.equals(denuncia.getVictimaId()))
                 .filter(denuncia -> casoId == null || casoId.isBlank() || casoId.equals(denuncia.getCasoId()))
                 .filter(denuncia -> nivelRiesgo == null || nivelRiesgo == denuncia.getNivelRiesgo())
                 .filter(denuncia -> distrito == null || distrito.isBlank() || distrito.equalsIgnoreCase(denuncia.getDistrito()))
-                .filter(denuncia -> tipoViolencia == null || tipoViolencia.isBlank() || tipoViolencia.equalsIgnoreCase(denuncia.getTipoViolencia()))
+                .filter(denuncia -> tipoNormalizado == null || tipoNormalizado.equals(TipoViolenciaNormalizer.normalizar(denuncia.getTipoViolencia())))
                 .map(mapper::toResponse)
                 .toList();
     }
@@ -100,7 +102,7 @@ public class DenunciaService {
         denuncia.setCasoId(casoId);
         denuncia.setVictimaId(request.victimaId().trim());
         denuncia.setDescripcion(limpiar(request.descripcion()));
-        denuncia.setTipoViolencia(limpiar(request.tipoViolencia()));
+        denuncia.setTipoViolencia(TipoViolenciaNormalizer.normalizar(request.tipoViolencia()));
         denuncia.setFechaIncidente(request.fechaIncidente());
         denuncia.setDistrito(limpiar(request.distrito()));
         denuncia.setDireccionReferencia(limpiar(request.direccionReferencia()));
@@ -132,7 +134,7 @@ public class DenunciaService {
             denuncia.setDescripcion(limpiar(request.descripcion()));
         }
         if (request.tipoViolencia() != null) {
-            denuncia.setTipoViolencia(limpiar(request.tipoViolencia()));
+            denuncia.setTipoViolencia(TipoViolenciaNormalizer.normalizar(request.tipoViolencia()));
         }
         if (request.fechaIncidente() != null) {
             denuncia.setFechaIncidente(request.fechaIncidente());

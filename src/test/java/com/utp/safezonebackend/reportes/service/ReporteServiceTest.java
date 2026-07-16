@@ -66,7 +66,7 @@ class ReporteServiceTest {
         ));
 
         assertThat(response.totalDenuncias()).isEqualTo(1);
-        assertThat(response.porTipoViolencia()).containsEntry("FISICA", 1L);
+        assertThat(response.porTipoViolencia()).containsEntry("Física", 1L);
         assertThat(response.porNivelRiesgo()).containsEntry(NivelRiesgo.CRITICO, 1L);
         assertThat(response.porDistrito()).containsEntry("Comas actualizado", 1L);
         assertThat(response.totalCitas()).isEqualTo(1);
@@ -98,6 +98,33 @@ class ReporteServiceTest {
         assertThat(response.porNivelRiesgo()).doesNotContainKey(NivelRiesgo.BAJO);
         assertThat(response.porDistrito()).containsEntry("Distrito editado", 1L);
         assertThat(response.porDistrito()).doesNotContainKey("Distrito denuncia");
+    }
+
+    @Test
+    void generarMensualAgrupaTiposDeViolenciaNormalizados() {
+        OffsetDateTime fecha = OffsetDateTime.parse("2026-07-10T10:00:00-05:00");
+        when(denunciaRepository.findByActivoTrueOrderByFechaCreacionDesc()).thenReturn(List.of(
+                denuncia("d1", "c1", "Psicológica", NivelRiesgo.ALTO, "Lima", fecha),
+                denuncia("d2", "c2", "Violencia Psicológica", NivelRiesgo.ALTO, "Lima", fecha),
+                denuncia("d3", "c3", "PSICOLOGICA", NivelRiesgo.ALTO, "Lima", fecha)
+        ));
+        when(casoRepository.findByActivoTrueOrderByFechaCreacionDesc()).thenReturn(List.of(
+                caso("c1", EstadoCaso.EN_ATENCION, PrioridadCaso.ALTA),
+                caso("c2", EstadoCaso.EN_ATENCION, PrioridadCaso.ALTA),
+                caso("c3", EstadoCaso.EN_ATENCION, PrioridadCaso.ALTA)
+        ));
+        when(citaRepository.findByActivoTrueOrderByFechaInicioDesc()).thenReturn(List.of());
+
+        ReporteMensualResponse response = service.generarMensual(new ReporteMensualRequest(
+                null,
+                null,
+                "Violencia Psicológica",
+                null
+        ));
+
+        assertThat(response.totalDenuncias()).isEqualTo(3);
+        assertThat(response.porTipoViolencia()).containsOnlyKeys("Psicológica");
+        assertThat(response.porTipoViolencia()).containsEntry("Psicológica", 3L);
     }
 
     @Test

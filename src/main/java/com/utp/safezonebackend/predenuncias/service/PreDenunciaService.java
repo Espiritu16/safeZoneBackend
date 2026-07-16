@@ -5,6 +5,7 @@ import com.utp.safezonebackend.auditoria.service.AuditoriaService;
 import com.utp.safezonebackend.denuncias.dto.request.CrearDenunciaRequest;
 import com.utp.safezonebackend.denuncias.dto.response.DenunciaResponse;
 import com.utp.safezonebackend.denuncias.service.DenunciaService;
+import com.utp.safezonebackend.denuncias.util.TipoViolenciaNormalizer;
 import com.utp.safezonebackend.evidencias.service.EvidenciaService;
 import com.utp.safezonebackend.notificaciones.service.NotificacionService;
 import com.utp.safezonebackend.predenuncias.dto.request.CrearPreDenunciaRequest;
@@ -75,7 +76,7 @@ public class PreDenunciaService {
         preDenuncia.setTelefonoContacto(limpiar(request.telefonoContacto()));
         preDenuncia.setCorreoContacto(limpiar(request.correoContacto()));
         preDenuncia.setDescripcionHecho(limpiar(request.descripcionHecho()));
-        preDenuncia.setTipoViolencia(limpiar(request.tipoViolencia()));
+        preDenuncia.setTipoViolencia(TipoViolenciaNormalizer.normalizar(request.tipoViolencia()));
         preDenuncia.setFechaIncidente(request.fechaIncidente());
         preDenuncia.setDistrito(limpiar(request.distrito()));
         preDenuncia.setDireccionReferencia(limpiar(request.direccionReferencia()));

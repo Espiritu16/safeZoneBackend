@@ -74,7 +74,7 @@ class DenunciaServiceTest {
                 null,
                 "victima-1",
                 "Hecho reportado",
-                "PSICOLOGICA",
+                "Violencia Psicológica",
                 OffsetDateTime.now().minusDays(1),
                 "Lima",
                 "Referencia segura",
@@ -85,6 +85,7 @@ class DenunciaServiceTest {
         ));
 
         assertThat(response.casoId()).isNotBlank();
+        assertThat(response.tipoViolencia()).isEqualTo("PSICOLOGICA");
         ArgumentCaptor<Caso> casoCaptor = ArgumentCaptor.forClass(Caso.class);
         verify(casoRepository).save(casoCaptor.capture());
         assertThat(casoCaptor.getValue().getEstado()).isEqualTo(EstadoCaso.REGISTRADO);
