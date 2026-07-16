@@ -14,6 +14,7 @@ import com.utp.safezonebackend.denuncias.repository.DenunciaRepository;
 import com.utp.safezonebackend.notificaciones.service.NotificacionService;
 import com.utp.safezonebackend.shared.exception.ExcepcionNegocio;
 import com.utp.safezonebackend.shared.exception.RecursoNoEncontradoException;
+import com.utp.safezonebackend.shared.util.DistritoNormalizer;
 import com.utp.safezonebackend.usuarios.entity.Usuario;
 import com.utp.safezonebackend.usuarios.enums.RolUsuario;
 import com.utp.safezonebackend.usuarios.repository.UsuarioRepository;
@@ -130,7 +131,7 @@ public class CasoService {
         caso.setId(UUID.randomUUID().toString());
         caso.setVictimaId(request.victimaId().trim());
         caso.setResumen(limpiar(request.resumen()));
-        caso.setDistrito(limpiar(request.distrito()));
+        caso.setDistrito(DistritoNormalizer.normalizar(request.distrito()));
         caso.setPrioridad(request.prioridad());
         caso.setEstado(request.estado() == null ? EstadoCaso.REGISTRADO : request.estado());
         caso.setActivo(true);
@@ -149,7 +150,7 @@ public class CasoService {
             caso.setResumen(limpiar(request.resumen()));
         }
         if (request.distrito() != null) {
-            caso.setDistrito(limpiar(request.distrito()));
+            caso.setDistrito(DistritoNormalizer.normalizar(request.distrito()));
         }
         if (request.prioridad() != null) {
             caso.setPrioridad(request.prioridad());

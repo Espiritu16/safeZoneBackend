@@ -12,6 +12,7 @@ import com.utp.safezonebackend.denuncias.entity.Denuncia;
 import com.utp.safezonebackend.denuncias.enums.NivelRiesgo;
 import com.utp.safezonebackend.denuncias.repository.DenunciaRepository;
 import com.utp.safezonebackend.denuncias.util.TipoViolenciaNormalizer;
+import com.utp.safezonebackend.shared.util.DistritoNormalizer;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.OffsetDateTime;
@@ -89,7 +90,7 @@ public class ReporteService {
         Map<NivelRiesgo, Long> porNivelRiesgo = casos.stream()
                 .collect(Collectors.groupingBy(caso -> nivelRiesgoDesdePrioridad(caso.getPrioridad()), () -> new EnumMap<>(NivelRiesgo.class), Collectors.counting()));
         Map<String, Long> porDistrito = casos.stream()
-                .collect(Collectors.groupingBy(caso -> etiquetaDistrito(caso.getDistrito()), Collectors.counting()));
+                .collect(Collectors.groupingBy(caso -> DistritoNormalizer.etiqueta(caso.getDistrito()), Collectors.counting()));
         Map<EstadoCaso, Long> casosPorEstado = casos.stream()
                 .collect(Collectors.groupingBy(Caso::getEstado, () -> new EnumMap<>(EstadoCaso.class), Collectors.counting()));
         Map<EstadoCita, Long> citasPorEstado = citas.stream()
@@ -168,10 +169,6 @@ public class ReporteService {
             case ALTA -> NivelRiesgo.ALTO;
             case CRITICA -> NivelRiesgo.CRITICO;
         };
-    }
-
-    private String etiquetaDistrito(String distrito) {
-        return distrito == null || distrito.isBlank() ? "Sin distrito" : distrito.trim();
     }
 
     private String limpiar(String valor) {

@@ -68,7 +68,7 @@ class ReporteServiceTest {
         assertThat(response.totalDenuncias()).isEqualTo(1);
         assertThat(response.porTipoViolencia()).containsEntry("Física", 1L);
         assertThat(response.porNivelRiesgo()).containsEntry(NivelRiesgo.CRITICO, 1L);
-        assertThat(response.porDistrito()).containsEntry("Comas actualizado", 1L);
+        assertThat(response.porDistrito()).containsEntry("Comas Actualizado", 1L);
         assertThat(response.totalCitas()).isEqualTo(1);
         assertThat(response.citasAtendidas()).isEqualTo(1);
         assertThat(response.citasCanceladas()).isZero();
@@ -96,7 +96,7 @@ class ReporteServiceTest {
         assertThat(response.totalCasos()).isEqualTo(1);
         assertThat(response.porNivelRiesgo()).containsEntry(NivelRiesgo.CRITICO, 1L);
         assertThat(response.porNivelRiesgo()).doesNotContainKey(NivelRiesgo.BAJO);
-        assertThat(response.porDistrito()).containsEntry("Distrito editado", 1L);
+        assertThat(response.porDistrito()).containsEntry("Distrito Editado", 1L);
         assertThat(response.porDistrito()).doesNotContainKey("Distrito denuncia");
     }
 
@@ -125,6 +125,36 @@ class ReporteServiceTest {
         assertThat(response.totalDenuncias()).isEqualTo(3);
         assertThat(response.porTipoViolencia()).containsOnlyKeys("Psicológica");
         assertThat(response.porTipoViolencia()).containsEntry("Psicológica", 3L);
+    }
+
+    @Test
+    void generarMensualAgrupaDistritosNormalizados() {
+        OffsetDateTime fecha = OffsetDateTime.parse("2026-07-10T10:00:00-05:00");
+        when(denunciaRepository.findByActivoTrueOrderByFechaCreacionDesc()).thenReturn(List.of(
+                denuncia("d1", "c1", "FISICA", NivelRiesgo.ALTO, "Los Olivos", fecha),
+                denuncia("d2", "c2", "FISICA", NivelRiesgo.ALTO, "Lima", fecha),
+                denuncia("d3", "c3", "FISICA", NivelRiesgo.ALTO, "santa fe", fecha),
+                denuncia("d4", "c4", "FISICA", NivelRiesgo.ALTO, "Lima Cercado", fecha)
+        ));
+        when(casoRepository.findByActivoTrueOrderByFechaCreacionDesc()).thenReturn(List.of(
+                caso("c1", EstadoCaso.EN_ATENCION, PrioridadCaso.ALTA, " los  olivos "),
+                caso("c2", EstadoCaso.EN_ATENCION, PrioridadCaso.ALTA, "LIMA"),
+                caso("c3", EstadoCaso.EN_ATENCION, PrioridadCaso.ALTA, "santa fe"),
+                caso("c4", EstadoCaso.EN_ATENCION, PrioridadCaso.ALTA, "Lima Cercado")
+        ));
+        when(citaRepository.findByActivoTrueOrderByFechaInicioDesc()).thenReturn(List.of());
+
+        ReporteMensualResponse response = service.generarMensual(new ReporteMensualRequest(
+                null,
+                null,
+                null,
+                null
+        ));
+
+        assertThat(response.porDistrito()).containsEntry("Los Olivos", 1L);
+        assertThat(response.porDistrito()).containsEntry("Lima", 2L);
+        assertThat(response.porDistrito()).containsEntry("Santa Fe", 1L);
+        assertThat(response.porDistrito()).doesNotContainKeys(" los  olivos ", "LIMA", "santa fe", "Lima Cercado");
     }
 
     @Test

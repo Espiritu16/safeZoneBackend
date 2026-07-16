@@ -9,6 +9,7 @@ import com.utp.safezonebackend.casos.repository.CasoRepository;
 import com.utp.safezonebackend.configuracion.service.ConfiguracionSeguridadService;
 import com.utp.safezonebackend.shared.exception.ExcepcionNegocio;
 import com.utp.safezonebackend.shared.exception.RecursoNoEncontradoException;
+import com.utp.safezonebackend.shared.util.DistritoNormalizer;
 import com.utp.safezonebackend.usuarios.dto.request.CrearUsuarioRequest;
 import com.utp.safezonebackend.usuarios.dto.request.ActualizarUsuarioRequest;
 import com.utp.safezonebackend.usuarios.dto.request.CambiarContrasenaRequest;
@@ -101,7 +102,7 @@ public class UsuarioService {
         usuario.setApellidos(request.apellidos().trim());
         usuario.setDni(request.dni().trim());
         usuario.setTelefono(normalizar(request.telefono()));
-        usuario.setDistrito(normalizar(request.distrito()));
+        usuario.setDistrito(DistritoNormalizer.normalizar(request.distrito()));
         usuario.setRol(request.rol());
         usuario.setActivo(true);
         usuario.setCreadoPor(actor == null ? null : actor.getId());
@@ -144,7 +145,7 @@ public class UsuarioService {
             usuario.setTelefono(normalizar(request.telefono()));
         }
         if (request.distrito() != null) {
-            usuario.setDistrito(normalizar(request.distrito()));
+            usuario.setDistrito(DistritoNormalizer.normalizar(request.distrito()));
         }
         if (request.rol() != null) {
             usuario.setRol(request.rol());

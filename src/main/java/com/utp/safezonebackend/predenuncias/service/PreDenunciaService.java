@@ -17,6 +17,7 @@ import com.utp.safezonebackend.predenuncias.enums.EstadoPreDenuncia;
 import com.utp.safezonebackend.predenuncias.repository.PreDenunciaRepository;
 import com.utp.safezonebackend.shared.exception.ExcepcionNegocio;
 import com.utp.safezonebackend.shared.exception.RecursoNoEncontradoException;
+import com.utp.safezonebackend.shared.util.DistritoNormalizer;
 import com.utp.safezonebackend.usuarios.entity.Usuario;
 import com.utp.safezonebackend.usuarios.enums.RolUsuario;
 import com.utp.safezonebackend.usuarios.repository.UsuarioRepository;
@@ -78,7 +79,7 @@ public class PreDenunciaService {
         preDenuncia.setDescripcionHecho(limpiar(request.descripcionHecho()));
         preDenuncia.setTipoViolencia(TipoViolenciaNormalizer.normalizar(request.tipoViolencia()));
         preDenuncia.setFechaIncidente(request.fechaIncidente());
-        preDenuncia.setDistrito(limpiar(request.distrito()));
+        preDenuncia.setDistrito(DistritoNormalizer.normalizar(request.distrito()));
         preDenuncia.setDireccionReferencia(limpiar(request.direccionReferencia()));
         preDenuncia.setAnonima(request.anonima() == null || request.anonima());
         preDenuncia.setEstado(EstadoPreDenuncia.PENDIENTE);
@@ -247,7 +248,7 @@ public class PreDenunciaService {
         usuario.setApellidos("Alias anonimo");
         usuario.setDni(dniTecnico);
         usuario.setTelefono(limpiar(preDenuncia.getTelefonoContacto()));
-        usuario.setDistrito(limpiar(preDenuncia.getDistrito()));
+        usuario.setDistrito(DistritoNormalizer.normalizar(preDenuncia.getDistrito()));
         usuario.setRol(RolUsuario.VICTIMA);
         usuario.setActivo(true);
         usuario.setCreadoPor(actor.getId());
