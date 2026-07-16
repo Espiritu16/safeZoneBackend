@@ -24,7 +24,9 @@ import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -84,12 +86,14 @@ public class CasoService {
             casos = casos.stream().filter(caso -> victimaId.equals(caso.getVictimaId())).toList();
         }
         if (aliasCodigo != null && !aliasCodigo.isBlank()) {
-            String idVictimaAlias = victimaAliasRepository
-                    .findTopByAliasCodigoIgnoreCaseAndActivoTrueOrderByFechaAsignacionDesc(aliasCodigo.trim())
+            Set<String> idsVictimasAlias = victimaAliasRepository
+                    .findByAliasCodigoContainingIgnoreCaseAndActivoTrue(aliasCodigo.trim())
+                    .stream()
                     .map(VictimaAlias::getVictima)
+                    .filter(usuario -> usuario != null && usuario.getId() != null)
                     .map(Usuario::getId)
-                    .orElse("__sin_resultados__");
-            casos = casos.stream().filter(caso -> idVictimaAlias.equals(caso.getVictimaId())).toList();
+                    .collect(Collectors.toSet());
+            casos = casos.stream().filter(caso -> idsVictimasAlias.contains(caso.getVictimaId())).toList();
         }
         if (estado != null) {
             casos = casos.stream().filter(caso -> estado == caso.getEstado()).toList();

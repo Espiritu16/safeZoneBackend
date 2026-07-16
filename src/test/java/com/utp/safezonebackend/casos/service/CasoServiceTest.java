@@ -20,7 +20,9 @@ import com.utp.safezonebackend.shared.exception.ExcepcionNegocio;
 import com.utp.safezonebackend.usuarios.entity.Usuario;
 import com.utp.safezonebackend.usuarios.enums.RolUsuario;
 import com.utp.safezonebackend.usuarios.repository.UsuarioRepository;
+import com.utp.safezonebackend.victimas.entity.VictimaAlias;
 import com.utp.safezonebackend.victimas.repository.VictimaAliasRepository;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -160,6 +162,43 @@ class CasoServiceTest {
         assertThat(response.estado()).isEqualTo(EstadoCaso.CERRADO);
         assertThat(response.activo()).isTrue();
         assertThat(response.fechaCierre()).isNotNull();
+    }
+
+    @Test
+    void buscarEncuentraCasoConAliasParcialDeVictimaProtegida() {
+        Usuario victima = usuario("victima-1", RolUsuario.VICTIMA);
+        VictimaAlias alias = new VictimaAlias();
+        alias.setVictima(victima);
+        alias.setAliasCodigo("VIC-ABCD1234");
+        Caso caso = new Caso();
+        caso.setId("caso-1");
+        caso.setVictimaId("victima-1");
+        caso.setEstado(EstadoCaso.EN_ATENCION);
+        caso.setPrioridad(PrioridadCaso.CRITICA);
+        caso.setResumen("Caso protegido");
+        caso.setDistrito("Comas");
+        caso.setActivo(true);
+
+        when(repository.findByActivoTrueOrderByFechaCreacionDesc()).thenReturn(List.of(caso));
+        when(victimaAliasRepository.findByAliasCodigoContainingIgnoreCaseAndActivoTrue("ABCD"))
+                .thenReturn(List.of(alias));
+        when(mapper.toResponse(caso)).thenReturn(new CasoResponse(
+                caso.getId(),
+                caso.getVictimaId(),
+                caso.getEstado(),
+                caso.getPrioridad(),
+                caso.getResumen(),
+                caso.getDistrito(),
+                caso.isActivo(),
+                caso.getFechaCreacion(),
+                caso.getFechaCierre(),
+                caso.getFechaActualizacion()
+        ));
+
+        List<CasoResponse> response = service.buscar(null, "ABCD", null, null, null);
+
+        assertThat(response).hasSize(1);
+        assertThat(response.get(0).victimaId()).isEqualTo("victima-1");
     }
 
     private Usuario usuario(String id, RolUsuario rol) {

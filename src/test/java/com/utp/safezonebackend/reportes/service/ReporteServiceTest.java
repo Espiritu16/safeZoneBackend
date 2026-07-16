@@ -15,8 +15,10 @@ import com.utp.safezonebackend.denuncias.enums.NivelRiesgo;
 import com.utp.safezonebackend.denuncias.repository.DenunciaRepository;
 import com.utp.safezonebackend.reportes.dto.request.ReporteMensualRequest;
 import com.utp.safezonebackend.reportes.dto.response.ReporteMensualResponse;
+import java.io.ByteArrayInputStream;
 import java.time.OffsetDateTime;
 import java.util.List;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -66,10 +68,36 @@ class ReporteServiceTest {
         assertThat(response.totalDenuncias()).isEqualTo(1);
         assertThat(response.porTipoViolencia()).containsEntry("FISICA", 1L);
         assertThat(response.porNivelRiesgo()).containsEntry(NivelRiesgo.CRITICO, 1L);
-        assertThat(response.porDistrito()).containsEntry("Lima", 1L);
+        assertThat(response.porDistrito()).containsEntry("Comas actualizado", 1L);
         assertThat(response.totalCitas()).isEqualTo(1);
         assertThat(response.citasAtendidas()).isEqualTo(1);
         assertThat(response.citasCanceladas()).isZero();
+    }
+
+    @Test
+    void generarMensualUsaRiesgoYDistritoActualesDelCaso() {
+        OffsetDateTime fecha = OffsetDateTime.parse("2026-07-10T10:00:00-05:00");
+        when(denunciaRepository.findByActivoTrueOrderByFechaCreacionDesc()).thenReturn(List.of(
+                denuncia("d1", "c1", "FISICA", NivelRiesgo.BAJO, "Distrito denuncia", fecha)
+        ));
+        when(casoRepository.findByActivoTrueOrderByFechaCreacionDesc()).thenReturn(List.of(
+                caso("c1", EstadoCaso.EN_ATENCION, PrioridadCaso.CRITICA, "Distrito editado")
+        ));
+        when(citaRepository.findByActivoTrueOrderByFechaInicioDesc()).thenReturn(List.of());
+
+        ReporteMensualResponse response = service.generarMensual(new ReporteMensualRequest(
+                null,
+                null,
+                null,
+                NivelRiesgo.CRITICO
+        ));
+
+        assertThat(response.totalDenuncias()).isEqualTo(1);
+        assertThat(response.totalCasos()).isEqualTo(1);
+        assertThat(response.porNivelRiesgo()).containsEntry(NivelRiesgo.CRITICO, 1L);
+        assertThat(response.porNivelRiesgo()).doesNotContainKey(NivelRiesgo.BAJO);
+        assertThat(response.porDistrito()).containsEntry("Distrito editado", 1L);
+        assertThat(response.porDistrito()).doesNotContainKey("Distrito denuncia");
     }
 
     @Test
@@ -102,7 +130,7 @@ class ReporteServiceTest {
     }
 
     @Test
-    void generarExcelMensualDevuelveArchivoXlsx() {
+    void generarExcelMensualDevuelveArchivoXlsx() throws Exception {
         OffsetDateTime desde = OffsetDateTime.parse("2026-07-01T00:00:00-05:00");
         OffsetDateTime hasta = OffsetDateTime.parse("2026-07-31T23:59:59-05:00");
         when(denunciaRepository.findByActivoTrueOrderByFechaCreacionDesc()).thenReturn(List.of(
@@ -125,6 +153,11 @@ class ReporteServiceTest {
         assertThat(archivo).isNotEmpty();
         assertThat(archivo[0]).isEqualTo((byte) 'P');
         assertThat(archivo[1]).isEqualTo((byte) 'K');
+        try (XSSFWorkbook workbook = new XSSFWorkbook(new ByteArrayInputStream(archivo))) {
+            assertThat(workbook.getSheet("Resumen").getTables()).hasSize(1);
+            assertThat(workbook.getSheet("Resumen").getRow(0).getCell(0).getStringCellValue()).isEqualTo("Metrica");
+            assertThat(workbook.getSheet("Resumen").getRow(0).getCell(1).getStringCellValue()).isEqualTo("Valor");
+        }
     }
 
     private Denuncia denuncia(String id, String casoId, String tipo, NivelRiesgo riesgo, String distrito, OffsetDateTime fecha) {
@@ -141,10 +174,15 @@ class ReporteServiceTest {
     }
 
     private Caso caso(String id, EstadoCaso estado, PrioridadCaso prioridad) {
+        return caso(id, estado, prioridad, "Comas actualizado");
+    }
+
+    private Caso caso(String id, EstadoCaso estado, PrioridadCaso prioridad, String distrito) {
         Caso caso = new Caso();
         caso.setId(id);
         caso.setEstado(estado);
         caso.setPrioridad(prioridad);
+        caso.setDistrito(distrito);
         caso.setActivo(true);
         return caso;
     }

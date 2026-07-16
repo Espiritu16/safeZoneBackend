@@ -22,7 +22,11 @@ import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.SpreadsheetVersion;
+import org.apache.poi.ss.util.AreaReference;
+import org.apache.poi.ss.util.CellReference;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFTable;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,16 +58,25 @@ public class ReporteService {
         List<Denuncia> denuncias = denunciaRepository.findByActivoTrueOrderByFechaCreacionDesc().stream()
                 .filter(denuncia -> dentroDeRango(fechaBase(denuncia), desde, hasta))
                 .filter(denuncia -> tipoViolencia == null || tipoViolencia.equalsIgnoreCase(denuncia.getTipoViolencia()))
-                .filter(denuncia -> nivelRiesgo == null || nivelRiesgo == denuncia.getNivelRiesgo())
                 .toList();
 
-        List<String> casoIds = denuncias.stream()
+        List<String> casoIdsFiltradosPorDenuncia = denuncias.stream()
                 .map(Denuncia::getCasoId)
                 .distinct()
                 .toList();
         List<Caso> casos = casoRepository.findByActivoTrueOrderByFechaCreacionDesc().stream()
-                .filter(caso -> casoIds.contains(caso.getId()))
+                .filter(caso -> casoIdsFiltradosPorDenuncia.contains(caso.getId()))
                 .toList();
+        if (nivelRiesgo != null) {
+            casos = casos.stream()
+                    .filter(caso -> nivelRiesgo == nivelRiesgoDesdePrioridad(caso.getPrioridad()))
+                    .toList();
+            List<String> casoIdsFiltradosPorRiesgo = casos.stream().map(Caso::getId).toList();
+            denuncias = denuncias.stream()
+                    .filter(denuncia -> casoIdsFiltradosPorRiesgo.contains(denuncia.getCasoId()))
+                    .toList();
+        }
+        List<String> casoIds = casos.stream().map(Caso::getId).toList();
         boolean filtrarCitasPorCasos = tipoViolencia != null || nivelRiesgo != null;
         List<Cita> citas = citaRepository.findByActivoTrueOrderByFechaInicioDesc().stream()
                 .filter(cita -> dentroDeRango(cita.getFechaInicio(), desde, hasta))
@@ -72,10 +85,10 @@ public class ReporteService {
 
         Map<String, Long> porTipoViolencia = denuncias.stream()
                 .collect(Collectors.groupingBy(Denuncia::getTipoViolencia, Collectors.counting()));
-        Map<NivelRiesgo, Long> porNivelRiesgo = denuncias.stream()
-                .collect(Collectors.groupingBy(Denuncia::getNivelRiesgo, () -> new EnumMap<>(NivelRiesgo.class), Collectors.counting()));
-        Map<String, Long> porDistrito = denuncias.stream()
-                .collect(Collectors.groupingBy(denuncia -> denuncia.getDistrito() == null ? "Sin distrito" : denuncia.getDistrito(), Collectors.counting()));
+        Map<NivelRiesgo, Long> porNivelRiesgo = casos.stream()
+                .collect(Collectors.groupingBy(caso -> nivelRiesgoDesdePrioridad(caso.getPrioridad()), () -> new EnumMap<>(NivelRiesgo.class), Collectors.counting()));
+        Map<String, Long> porDistrito = casos.stream()
+                .collect(Collectors.groupingBy(caso -> etiquetaDistrito(caso.getDistrito()), Collectors.counting()));
         Map<EstadoCaso, Long> casosPorEstado = casos.stream()
                 .collect(Collectors.groupingBy(Caso::getEstado, () -> new EnumMap<>(EstadoCaso.class), Collectors.counting()));
         Map<EstadoCita, Long> citasPorEstado = citas.stream()
@@ -101,7 +114,7 @@ public class ReporteService {
     @Transactional(readOnly = true)
     public byte[] generarExcelMensual(ReporteMensualRequest request) {
         ReporteMensualResponse reporte = generarMensual(request);
-        try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+        try (XSSFWorkbook workbook = new XSSFWorkbook(); ByteArrayOutputStream output = new ByteArrayOutputStream()) {
             CellStyle headerStyle = workbook.createCellStyle();
             Font headerFont = workbook.createFont();
             headerFont.setBold(true);
@@ -117,6 +130,7 @@ public class ReporteService {
             escribirFila(resumen, 6, null, "Citas atendidas", reporte.citasAtendidas());
             escribirFila(resumen, 7, null, "Citas canceladas", reporte.citasCanceladas());
             escribirFila(resumen, 8, null, "Citas no asistidas", reporte.citasNoAsistidas());
+            crearTabla(resumen, 8, "ResumenReporte");
             autoSize(resumen, 2);
 
             escribirMapa(workbook, "Tipo violencia", "Tipo", reporte.porTipoViolencia(), headerStyle);
@@ -143,6 +157,22 @@ public class ReporteService {
         return denuncia.getFechaIncidente() == null ? denuncia.getFechaCreacion() : denuncia.getFechaIncidente();
     }
 
+    private NivelRiesgo nivelRiesgoDesdePrioridad(com.utp.safezonebackend.casos.enums.PrioridadCaso prioridad) {
+        if (prioridad == null) {
+            return NivelRiesgo.MEDIO;
+        }
+        return switch (prioridad) {
+            case BAJA -> NivelRiesgo.BAJO;
+            case MEDIA -> NivelRiesgo.MEDIO;
+            case ALTA -> NivelRiesgo.ALTO;
+            case CRITICA -> NivelRiesgo.CRITICO;
+        };
+    }
+
+    private String etiquetaDistrito(String distrito) {
+        return distrito == null || distrito.isBlank() ? "Sin distrito" : distrito.trim();
+    }
+
     private String limpiar(String valor) {
         if (valor == null || valor.isBlank()) {
             return null;
@@ -150,7 +180,7 @@ public class ReporteService {
         return valor.trim();
     }
 
-    private void escribirMapa(Workbook workbook, String nombreHoja, String cabecera, Map<?, Long> datos, CellStyle headerStyle) {
+    private void escribirMapa(XSSFWorkbook workbook, String nombreHoja, String cabecera, Map<?, Long> datos, CellStyle headerStyle) {
         Sheet sheet = workbook.createSheet(nombreHoja);
         escribirFila(sheet, 0, headerStyle, cabecera, "Cantidad");
         int rowIndex = 1;
@@ -180,5 +210,21 @@ public class ReporteService {
         for (int index = 0; index < columns; index++) {
             sheet.autoSizeColumn(index);
         }
+    }
+
+    private void crearTabla(Sheet sheet, int lastRowIndex, String tableName) {
+        if (!(sheet instanceof XSSFSheet xssfSheet)) {
+            return;
+        }
+        AreaReference area = new AreaReference(
+                new CellReference(0, 0),
+                new CellReference(lastRowIndex, 1),
+                SpreadsheetVersion.EXCEL2007
+        );
+        XSSFTable table = xssfSheet.createTable(area);
+        table.setName(tableName);
+        table.setDisplayName(tableName);
+        table.getCTTable().addNewAutoFilter().setRef(area.formatAsString());
+        table.setStyleName("TableStyleMedium2");
     }
 }
