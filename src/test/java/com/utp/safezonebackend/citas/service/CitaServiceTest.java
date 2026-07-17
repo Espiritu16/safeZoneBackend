@@ -169,6 +169,33 @@ class CitaServiceTest {
         verify(notificacionService).notificarCitaProxima(any(Cita.class));
     }
 
+    @Test
+    void updateRechazaReprogramarCitaCerrada() {
+        OffsetDateTime inicioOriginal = OffsetDateTime.parse("2026-07-16T09:00:00-05:00");
+        OffsetDateTime inicioNuevo = OffsetDateTime.parse("2026-07-17T11:00:00-05:00");
+        Cita cita = new Cita();
+        cita.setId("cita-1");
+        cita.setCasoId("caso-1");
+        cita.setVictimaId("victima-1");
+        cita.setEspecialistaId("prof-1");
+        cita.setTipoCita(TipoCita.PSICOLOGIA);
+        cita.setFechaInicio(inicioOriginal);
+        cita.setFechaFin(inicioOriginal.plusHours(1));
+        cita.setEstado(EstadoCita.ATENDIDA);
+        cita.setActivo(true);
+        when(repository.findByIdAndActivoTrue("cita-1")).thenReturn(Optional.of(cita));
+
+        assertThatThrownBy(() -> service.update("cita-1", new ActualizarCitaRequest(
+                null,
+                inicioNuevo,
+                inicioNuevo.plusHours(1),
+                null,
+                null,
+                null
+        ))).isInstanceOf(ExcepcionNegocio.class)
+                .hasMessageContaining("Solo se pueden reprogramar");
+    }
+
     private Caso caso(String id, String victimaId) {
         Caso caso = new Caso();
         caso.setId(id);

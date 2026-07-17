@@ -108,6 +108,7 @@ public class CitaService {
         OffsetDateTime fechaFin = fechaFin(fechaInicio, request.fechaFin() == null ? cita.getFechaFin() : request.fechaFin());
         boolean reprogramada = request.fechaInicio() != null || request.fechaFin() != null || request.tipoCita() != null;
         if (reprogramada) {
+            validarCitaReprogramable(cita);
             AsignacionCaso asignacion = asignacionCasoRepository
                     .findTopByCasoIdAndRolProfesionalAndActivoTrueOrderByFechaAsignacionDesc(cita.getCasoId(), rolDesdeTipo(tipo))
                     .orElseThrow(() -> new ExcepcionNegocio("El caso no tiene profesional asignado para " + tipo));
@@ -206,6 +207,12 @@ public class CitaService {
     private void validarRango(OffsetDateTime fechaInicio, OffsetDateTime fechaFin) {
         if (fechaInicio == null || fechaFin == null || !fechaFin.isAfter(fechaInicio)) {
             throw new ExcepcionNegocio("La fecha de fin debe ser posterior a la fecha de inicio");
+        }
+    }
+
+    private void validarCitaReprogramable(Cita cita) {
+        if (cita.getEstado() != EstadoCita.PROGRAMADA && cita.getEstado() != EstadoCita.CONFIRMADA) {
+            throw new ExcepcionNegocio("Solo se pueden reprogramar citas pendientes o confirmadas");
         }
     }
 
