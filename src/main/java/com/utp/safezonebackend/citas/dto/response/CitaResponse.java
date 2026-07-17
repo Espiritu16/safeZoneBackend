@@ -15,6 +15,7 @@ public record CitaResponse(
         EstadoCita estado,
         String motivoCancelacion,
         String observaciones,
+        boolean reprogramada,
         boolean activo,
         OffsetDateTime fechaCreacion,
         OffsetDateTime fechaActualizacion

@@ -89,6 +89,7 @@ public class CitaService {
         cita.setFechaInicio(fechaInicio);
         cita.setFechaFin(fechaFin);
         cita.setEstado(EstadoCita.PROGRAMADA);
+        cita.setReprogramada(false);
         cita.setObservaciones(limpiar(request.observaciones()));
         cita.setActivo(true);
         cita.setFechaCreacion(ahora);
@@ -117,6 +118,7 @@ public class CitaService {
             cita.setFechaInicio(fechaInicio);
             cita.setFechaFin(fechaFin);
             cita.setEstado(EstadoCita.PROGRAMADA);
+            cita.setReprogramada(true);
         }
         if (request.estado() != null) {
             cita.setEstado(request.estado());

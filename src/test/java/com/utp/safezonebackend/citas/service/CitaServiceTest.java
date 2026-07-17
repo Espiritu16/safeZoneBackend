@@ -75,6 +75,7 @@ class CitaServiceTest {
         assertThat(response.victimaId()).isEqualTo("victima-1");
         assertThat(response.especialistaId()).isEqualTo("prof-1");
         assertThat(response.estado()).isEqualTo(EstadoCita.PROGRAMADA);
+        assertThat(response.reprogramada()).isFalse();
         verify(notificacionService).notificarCitaProxima(any(Cita.class));
     }
 
@@ -132,6 +133,42 @@ class CitaServiceTest {
         assertThat(captor.getValue().getFechaActualizacion()).isNotNull();
     }
 
+    @Test
+    void updateMarcaCitaReprogramadaCuandoCambiaHorario() {
+        OffsetDateTime inicioOriginal = OffsetDateTime.parse("2026-07-16T09:00:00-05:00");
+        OffsetDateTime inicioNuevo = OffsetDateTime.parse("2026-07-17T11:00:00-05:00");
+        Cita cita = new Cita();
+        cita.setId("cita-1");
+        cita.setCasoId("caso-1");
+        cita.setVictimaId("victima-1");
+        cita.setEspecialistaId("prof-1");
+        cita.setTipoCita(TipoCita.PSICOLOGIA);
+        cita.setFechaInicio(inicioOriginal);
+        cita.setFechaFin(inicioOriginal.plusHours(1));
+        cita.setEstado(EstadoCita.CONFIRMADA);
+        cita.setActivo(true);
+        when(repository.findByIdAndActivoTrue("cita-1")).thenReturn(Optional.of(cita));
+        when(asignacionCasoRepository.findTopByCasoIdAndRolProfesionalAndActivoTrueOrderByFechaAsignacionDesc("caso-1", RolUsuario.PSICOLOGO))
+                .thenReturn(Optional.of(asignacion("prof-1", RolUsuario.PSICOLOGO)));
+        when(repository.findSolapadasPorEspecialista("prof-1", inicioNuevo, inicioNuevo.plusHours(1), List.of(EstadoCita.CANCELADA)))
+                .thenReturn(List.of());
+        when(repository.save(any(Cita.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(mapper.toResponse(any(Cita.class))).thenAnswer(invocation -> response(invocation.getArgument(0)));
+
+        CitaResponse response = service.update("cita-1", new ActualizarCitaRequest(
+                TipoCita.PSICOLOGIA,
+                inicioNuevo,
+                inicioNuevo.plusHours(1),
+                null,
+                null,
+                "Nuevo horario coordinado"
+        ));
+
+        assertThat(response.estado()).isEqualTo(EstadoCita.PROGRAMADA);
+        assertThat(response.reprogramada()).isTrue();
+        verify(notificacionService).notificarCitaProxima(any(Cita.class));
+    }
+
     private Caso caso(String id, String victimaId) {
         Caso caso = new Caso();
         caso.setId(id);
@@ -160,6 +197,7 @@ class CitaServiceTest {
                 cita.getEstado(),
                 cita.getMotivoCancelacion(),
                 cita.getObservaciones(),
+                cita.isReprogramada(),
                 cita.isActivo(),
                 cita.getFechaCreacion(),
                 cita.getFechaActualizacion()

@@ -44,6 +44,8 @@ public class Cita {
 
     private String observaciones;
 
+    private boolean reprogramada;
+
     private boolean activo;
 
     @Column(name = "fecha_creacion")
@@ -142,6 +144,14 @@ public class Cita {
 
     public void setObservaciones(String observaciones) {
         this.observaciones = observaciones;
+    }
+
+    public boolean isReprogramada() {
+        return reprogramada;
+    }
+
+    public void setReprogramada(boolean reprogramada) {
+        this.reprogramada = reprogramada;
     }
 
     public boolean isActivo() {

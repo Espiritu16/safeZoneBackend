@@ -19,6 +19,7 @@ public class CitaMapper {
                 entity.getEstado(),
                 entity.getMotivoCancelacion(),
                 entity.getObservaciones(),
+                entity.isReprogramada(),
                 entity.isActivo(),
                 entity.getFechaCreacion(),
                 entity.getFechaActualizacion()
